@@ -20,9 +20,33 @@ var (
 )
 
 func trimSpace(s string) string {
-	s = strings.TrimLeft(s, " \t")
-	s = strings.TrimRight(s, " \t")
+	const target = " \t"
+	s = strings.TrimLeft(s, target)
+	s = strings.TrimRight(s, target)
 	return s
+}
+
+func trimSpaceAndQuote(s string) string {
+	const target = " \t\"'"
+	s = strings.TrimLeft(s, target)
+	s = strings.TrimRight(s, target)
+	return s
+}
+
+func parseLine(line string) (string, string) {
+	line = trimSpace(line)
+	if line == "" || line[0] == '#' {
+		// Skip empty lines and comments
+		return "", ""
+	}
+	parts := strings.Split(line, "=")
+	if len(parts) != 2 {
+		slog.Error("invalid line in .env file", "line", line)
+		return "", ""
+	}
+	key := trimSpace(parts[0])
+	value := trimSpaceAndQuote(parts[1])
+	return key, value
 }
 
 func load() {
@@ -38,18 +62,10 @@ func load() {
 	reader := bufio.NewScanner(file)
 	for reader.Scan() {
 		line := reader.Text()
-		line = trimSpace(line)
-		if line == "" || line[0] == '#' {
-			// Skip empty lines and comments
-			continue
+		key, value := parseLine(line)
+		if key == "" || value == "" {
+			continue // Skip invalid lines
 		}
-		parts := strings.Split(line, "=")
-		if len(parts) != 2 {
-			slog.Error("invalid line in .env file", "line", line)
-			continue
-		}
-		key := trimSpace(parts[0])
-		value := trimSpace(parts[1])
 		envMap[key] = value
 	}
 
