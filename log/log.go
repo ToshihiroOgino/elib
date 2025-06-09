@@ -10,7 +10,7 @@ import (
 func Init() {
 	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		AddSource: true,
-		Level:     slog.LevelInfo,
+		Level:     slog.LevelDebug,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			switch a.Key {
 			case slog.SourceKey:

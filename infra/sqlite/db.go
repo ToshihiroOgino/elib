@@ -4,6 +4,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/ToshihiroOgino/elib/env"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -19,7 +20,7 @@ type Config struct {
 
 func DefaultConfig() Config {
 	return Config{
-		DBPath: "elib2.db",
+		DBPath: env.Get().DBFile,
 	}
 }
 

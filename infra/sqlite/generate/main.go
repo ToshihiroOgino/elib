@@ -3,10 +3,9 @@ package main
 import (
 	"log/slog"
 
+	"github.com/ToshihiroOgino/elib/infra/sqlite"
 	"github.com/ToshihiroOgino/elib/log"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gen"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -19,10 +18,7 @@ func main() {
 		Mode:          gen.WithDefaultQuery | gen.WithQueryInterface,
 		FieldNullable: true,
 	})
-	db, err := gorm.Open(sqlite.Open("sqlite/db.sqlite3"), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
+	db := sqlite.GetDB()
 	g.UseDB(db)
 	all := g.GenerateAllTable()
 	g.ApplyBasic(all...)

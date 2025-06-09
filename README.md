@@ -5,7 +5,7 @@
 - Windows: `get-Content .\sqlite\init.sql | sqlite3.exe .\sqlite\db.sqlite3`
 - Linux: `sqlite3 ./sqlite/db.sqlite3 < ./sqlite/init.sql`
 
-## Domain と Repository のコード生成
+## コード生成
 
 `go run .\infra\sqlite\generate\main.go'
 
