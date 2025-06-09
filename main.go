@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ToshihiroOgino/elib/backend/repository"
+import "github.com/ToshihiroOgino/elib/repository"
 
 func main() {
 	userRepository := repository.NewUserRepository()

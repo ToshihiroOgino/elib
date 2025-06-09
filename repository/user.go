@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/ToshihiroOgino/elib/backend/domain"
-	"github.com/ToshihiroOgino/elib/backend/infra"
+	"github.com/ToshihiroOgino/elib/domain"
+	"github.com/ToshihiroOgino/elib/infra"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

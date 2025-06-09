@@ -19,7 +19,7 @@ type Config struct {
 
 func DefaultConfig() Config {
 	return Config{
-		DBPath: "elib.db",
+		DBPath: "elib2.db",
 	}
 }
 
