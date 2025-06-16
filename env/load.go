@@ -10,8 +10,23 @@ import (
 )
 
 type Env struct {
-	Port   int
-	DBFile string
+	Port      int
+	DBFile    string
+	JWTSecret string
+}
+
+func (e Env) Keys() []string {
+	keys := make([]string, 0, 3)
+	if e.Port != 0 {
+		keys = append(keys, "PORT")
+	}
+	if e.DBFile != "" {
+		keys = append(keys, "DB_FILE")
+	}
+	if e.JWTSecret != "" {
+		keys = append(keys, "JWT_SECRET")
+	}
+	return keys
 }
 
 var (
@@ -75,10 +90,11 @@ func load() {
 	}
 
 	env = Env{
-		Port:   port,
-		DBFile: envMap["DB_FILE"],
+		Port:      port,
+		DBFile:    envMap["DB_FILE"],
+		JWTSecret: envMap["JWT_SECRET"],
 	}
-	slog.Debug("loaded environment variables", "env", env)
+	slog.Debug("loaded environment variables", "EnvKeys", env.Keys())
 }
 
 func loadOnce() {

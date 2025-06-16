@@ -14,10 +14,25 @@ import (
 
 type IUserUsecase interface {
 	Create(email string, password string) (*domain.User, error)
+	// Login(email string, password string) (string, error)
+	Validate(email string, password string) (bool, error)
 }
 
 type userUsecase struct {
 	db *gorm.DB
+}
+
+func NewUserUsecase() IUserUsecase {
+	db := sqlite.GetDB()
+	return &userUsecase{
+		db: db,
+	}
+}
+
+func (u *userUsecase) newQuery() (*repository.Query, repository.IUserDo) {
+	q := repository.Use(u.db)
+	do := q.User.WithContext(u.db.Statement.Context)
+	return q, do
 }
 
 func isValidEmail(email string) bool {
@@ -43,34 +58,6 @@ func hashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-func Create(
-	email string,
-	password string,
-) (*domain.User, error) {
-	id := newUUID()
-	if !isValidEmail(email) {
-		slog.Error("invalid email format", "email", email)
-		return nil, errors.New("invalid email format")
-	}
-	passwordHash, err := hashPassword(password)
-	if err != nil {
-		slog.Error("failed to hash password", "error", err)
-		return nil, err
-	}
-	user := &domain.User{
-		ID:           &id,
-		Email:        &email,
-		PasswordHash: &passwordHash,
-	}
-	db := sqlite.GetDB()
-	q := repository.Use(db).User
-	if err := q.WithContext(db.Statement.Context).Create(user); err != nil {
-		slog.Error("failed to create user", "error", err)
-		return nil, err
-	}
-	return user, nil
-}
-
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
 	id := newUUID()
 	if !isValidEmail(email) {
@@ -87,10 +74,62 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 		Email:        &email,
 		PasswordHash: &passwordHash,
 	}
-	q := repository.Use(u.db).User
-	if err := q.WithContext(u.db.Statement.Context).Create(user); err != nil {
+
+	_, repo := u.newQuery()
+	if err := repo.Create(user); err != nil {
 		slog.Error("failed to create user", "error", err)
 		return nil, err
 	}
 	return user, nil
+}
+
+// func (u *userUsecase) Login(email string, password string) (string, error) {
+// 	q, repo := u.newQuery()
+// 	user, err := repo.Where(q.User.Email.Eq(email)).First()
+// 	if err != nil {
+// 		slog.Error("failed to find user", "email", email, "error", err)
+// 		return "", errors.New("invalid email or password")
+// 	}
+
+// 	if user.PasswordHash == nil || user.ID == nil {
+// 		slog.Error("user data is incomplete", "email", email)
+// 		return "", errors.New("user data is incomplete")
+// 	}
+
+// 	err = bcrypt.CompareHashAndPassword(*user.PasswordHash, []byte(password))
+// 	if err != nil {
+// 		slog.Error("invalid password", "email", email, "error", err)
+// 		return "", errors.New("invalid email or password")
+// 	}
+
+// 	// Generate JWT token
+// 	token, err := auth.GenerateToken(*user.ID, email)
+// 	if err != nil {
+// 		slog.Error("failed to generate token", "error", err)
+// 		return "", err
+// 	}
+
+// 	return token, nil
+// }
+
+func (u *userUsecase) Validate(email string, password string) (bool, error) {
+	q, repo := u.newQuery()
+	user, err := repo.Where(q.User.Email.Eq(email)).First()
+	if err != nil {
+		slog.Error("failed to find user", "email", email, "error", err)
+		return false, errors.New("invalid email or password")
+	}
+
+	if user.PasswordHash == nil {
+		slog.Error("user data is incomplete", "email", email)
+		return false, errors.New("user data is incomplete")
+	}
+
+	err = bcrypt.CompareHashAndPassword(*user.PasswordHash, []byte(password))
+	if err != nil {
+		slog.Error("invalid password", "email", email, "error", err)
+		return false, errors.New("invalid email or password")
+	}
+
+	return true, nil
 }

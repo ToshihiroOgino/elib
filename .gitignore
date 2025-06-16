@@ -1,4 +1,6 @@
 .vscode/
 *.sqlite3
 .env
-.local
+.local/
+.github/
+tmp/

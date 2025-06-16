@@ -1,0 +1,15 @@
+.auth-card {
+    margin-top: 8vh;
+}
+
+.card-header h3 {
+    margin-bottom: 0;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.btn-primary, .btn-success {
+    font-weight: 500;
+}

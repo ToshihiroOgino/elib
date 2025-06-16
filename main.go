@@ -1,16 +1,32 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 
+	"github.com/ToshihiroOgino/elib/controller"
+	"github.com/ToshihiroOgino/elib/env"
+	"github.com/ToshihiroOgino/elib/infra/sqlite"
 	"github.com/ToshihiroOgino/elib/log"
-	"github.com/ToshihiroOgino/elib/usecase"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	log.Init()
 
-	slog.Info("Starting code generation")
+	defer sqlite.CloseDB()
 
-	usecase.Create("aaaa@aaa.com", "password1234")
+	router := gin.Default()
+
+	router.LoadHTMLGlob("templates/*/*")
+	router.Static("/static", "./static")
+
+	controller := controller.NewController()
+	controller.SetupRoutes(router)
+
+	serverAddr := fmt.Sprintf(":%d", env.Get().Port)
+	slog.Info("Server starting", "address", serverAddr)
+	if err := router.Run(serverAddr); err != nil {
+		slog.Error("Server failed to start", "error", err)
+	}
 }
