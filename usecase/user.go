@@ -83,35 +83,6 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 	return user, nil
 }
 
-// func (u *userUsecase) Login(email string, password string) (string, error) {
-// 	q, repo := u.newQuery()
-// 	user, err := repo.Where(q.User.Email.Eq(email)).First()
-// 	if err != nil {
-// 		slog.Error("failed to find user", "email", email, "error", err)
-// 		return "", errors.New("invalid email or password")
-// 	}
-
-// 	if user.PasswordHash == nil || user.ID == nil {
-// 		slog.Error("user data is incomplete", "email", email)
-// 		return "", errors.New("user data is incomplete")
-// 	}
-
-// 	err = bcrypt.CompareHashAndPassword(*user.PasswordHash, []byte(password))
-// 	if err != nil {
-// 		slog.Error("invalid password", "email", email, "error", err)
-// 		return "", errors.New("invalid email or password")
-// 	}
-
-// 	// Generate JWT token
-// 	token, err := auth.GenerateToken(*user.ID, email)
-// 	if err != nil {
-// 		slog.Error("failed to generate token", "error", err)
-// 		return "", err
-// 	}
-
-// 	return token, nil
-// }
-
 func (u *userUsecase) Validate(email string, password string) (bool, error) {
 	q, repo := u.newQuery()
 	user, err := repo.Where(q.User.Email.Eq(email)).First()
