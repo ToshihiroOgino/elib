@@ -30,7 +30,7 @@ func newSharingInfo(db *gorm.DB, opts ...gen.DOOption) sharingInfo {
 	_sharingInfo.ALL = field.NewAsterisk(tableName)
 	_sharingInfo.ID = field.NewString(tableName, "id")
 	_sharingInfo.NoteID = field.NewString(tableName, "note_id")
-	_sharingInfo.SharedState = field.NewInt32(tableName, "shared_state")
+	_sharingInfo.Editable = field.NewBool(tableName, "editable")
 
 	_sharingInfo.fillFieldMap()
 
@@ -40,10 +40,10 @@ func newSharingInfo(db *gorm.DB, opts ...gen.DOOption) sharingInfo {
 type sharingInfo struct {
 	sharingInfoDo sharingInfoDo
 
-	ALL         field.Asterisk
-	ID          field.String
-	NoteID      field.String
-	SharedState field.Int32
+	ALL      field.Asterisk
+	ID       field.String
+	NoteID   field.String
+	Editable field.Bool
 
 	fieldMap map[string]field.Expr
 }
@@ -62,7 +62,7 @@ func (s *sharingInfo) updateTableName(table string) *sharingInfo {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewString(table, "id")
 	s.NoteID = field.NewString(table, "note_id")
-	s.SharedState = field.NewInt32(table, "shared_state")
+	s.Editable = field.NewBool(table, "editable")
 
 	s.fillFieldMap()
 
@@ -92,7 +92,7 @@ func (s *sharingInfo) fillFieldMap() {
 	s.fieldMap = make(map[string]field.Expr, 3)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["note_id"] = s.NoteID
-	s.fieldMap["shared_state"] = s.SharedState
+	s.fieldMap["editable"] = s.Editable
 }
 
 func (s sharingInfo) clone(db *gorm.DB) sharingInfo {

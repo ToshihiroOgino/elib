@@ -17,7 +17,6 @@ CREATE INDEX idx_notes_author_id ON notes(author_id);
 CREATE TABLE sharing_info (
     id TEXT PRIMARY KEY NOT NULL,
     note_id TEXT NOT NULL,
-    -- 0: only view, 1: can edit
-    shared_state INTEGER NOT NULL,
+    editable BOOLEAN NOT NULL,
     FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
 );

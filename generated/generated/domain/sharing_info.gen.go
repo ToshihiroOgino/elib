@@ -8,9 +8,9 @@ const TableNameSharingInfo = "sharing_info"
 
 // SharingInfo mapped from table <sharing_info>
 type SharingInfo struct {
-	ID          string `gorm:"column:id;primaryKey" json:"id"`
-	NoteID      string `gorm:"column:note_id;not null" json:"note_id"`
-	SharedState *int32 `gorm:"column:shared_state;type:INTEGER" json:"shared_state"`
+	ID       string `gorm:"column:id;primaryKey" json:"id"`
+	NoteID   string `gorm:"column:note_id;not null" json:"note_id"`
+	Editable bool   `gorm:"column:editable;not null" json:"editable"`
 }
 
 // TableName SharingInfo's table name
