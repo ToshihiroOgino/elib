@@ -8,9 +8,9 @@ const TableNameUser = "users"
 
 // User mapped from table <users>
 type User struct {
-	ID           *string `gorm:"column:id;type:TEXT" json:"id"`
-	Email        *string `gorm:"column:email;type:TEXT" json:"email"`
-	PasswordHash *[]byte `gorm:"column:password_hash;type:BLOB" json:"password_hash"`
+	ID           string `gorm:"column:id;primaryKey" json:"id"`
+	Email        string `gorm:"column:email;not null" json:"email"`
+	PasswordHash []byte `gorm:"column:password_hash;not null" json:"password_hash"`
 }
 
 // TableName User's table name

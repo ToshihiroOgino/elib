@@ -70,9 +70,9 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 		return nil, err
 	}
 	user := &domain.User{
-		ID:           &id,
-		Email:        &email,
-		PasswordHash: &passwordHash,
+		ID:           id,
+		Email:        email,
+		PasswordHash: passwordHash,
 	}
 
 	_, repo := u.newQuery()
@@ -84,7 +84,7 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 }
 
 func (u *userUsecase) Validate(user *domain.User, email string, password string) (bool, error) {
-	if !strings.EqualFold(*user.Email, email) {
+	if !strings.EqualFold(user.Email, email) {
 		return false, errors.New("invalid email")
 	}
 
@@ -93,7 +93,7 @@ func (u *userUsecase) Validate(user *domain.User, email string, password string)
 		return false, errors.New("user data is incomplete")
 	}
 
-	err := bcrypt.CompareHashAndPassword(*user.PasswordHash, []byte(password))
+	err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
 	if err != nil {
 		slog.Error("invalid password", "email", email, "error", err)
 		return false, errors.New("invalid password")

@@ -55,7 +55,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			authFailed(c, "user not found")
 			return
 		}
-		slog.Info("user authenticated", "user_id", *user.ID, "email", *user.Email)
+		slog.Info("user authenticated", "user_id", user.ID, "email", user.Email)
 		c.Set(userCookie, user)
 		c.Next()
 	}

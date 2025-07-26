@@ -116,8 +116,8 @@ func (u *userController) GetProfile(c *gin.Context) {
 	user := auth.GetUser(c)
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":    *user.ID,
-		"email": *user.Email,
+		"id":    user.ID,
+		"email": user.Email,
 	})
 }
 
@@ -136,7 +136,7 @@ func (u *userController) PostRegister(c *gin.Context) {
 		return
 	}
 
-	auth.SetAuthCookie(c, *user.ID)
+	auth.SetAuthCookie(c, user.ID)
 	c.Redirect(http.StatusSeeOther, URL_PROFILE)
 }
 
@@ -166,6 +166,6 @@ func (u *userController) PostLogin(c *gin.Context) {
 		return
 	}
 
-	auth.SetAuthCookie(c, *user.ID)
+	auth.SetAuthCookie(c, user.ID)
 	c.Redirect(http.StatusSeeOther, URL_PROFILE)
 }

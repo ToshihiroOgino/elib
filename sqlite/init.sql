@@ -1,43 +1,23 @@
-DROP TABLE IF EXISTS books;
 DROP TABLE IF EXISTS users;
-
--- ユーザー情報を格納するテーブル
+DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS sharing_info;
 CREATE TABLE users (
-    -- ユーザーID (UUIDをテキストとして保存)
     id TEXT PRIMARY KEY NOT NULL,
-    -- メールアドレス (ユニーク制約)
     email TEXT UNIQUE NOT NULL,
-    -- ハッシュ化されたパスワード
     password_hash BLOB NOT NULL
 );
-
--- 書籍情報を格納するテーブル
-CREATE TABLE books (
-    -- 書籍ID
+CREATE TABLE notes (
     id TEXT PRIMARY KEY NOT NULL,
-    -- 外部キー (usersテーブルのidを参照)
-    user_id TEXT NOT NULL,
-    -- タイトル
+    author_id TEXT NOT NULL,
     title TEXT NOT NULL,
-    -- 著者
-    author TEXT NOT NULL,
-    /*
-     * 提供元
-     * 0: PDF
-     * 1: BookLive
-     * 2: Kindle
-     */
-    provider INTEGER NOT NULL,
-    /*
-     * カテゴリ
-     * 0: Unknown
-     * 1: Novel
-     * 2: Comic
-     * 3: Other
-     */
-    category INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    content TEXT NOT NULL,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- booksテーブルのuser_idカラムにインデックスを作成し、検索を高速化
-CREATE INDEX idx_books_user_id ON books(user_id);
+CREATE INDEX idx_notes_author_id ON notes(author_id);
+CREATE TABLE sharing_info (
+    id TEXT PRIMARY KEY NOT NULL,
+    note_id TEXT NOT NULL,
+    -- 0: only view, 1: can edit
+    shared_state INTEGER NOT NULL,
+    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
+);
