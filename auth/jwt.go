@@ -3,9 +3,11 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/ToshihiroOgino/elib/env"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -16,12 +18,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID, email string) (string, error) {
+func generateToken(userID string) (string, error) {
 	expirationTime := time.Now().Add(time.Hour * 24 * 7)
 
 	claims := &Claims{
 		UserID: userID,
-		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -64,4 +65,16 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	}
 
 	return nil, errors.New("invalid token")
+}
+
+func SetAuthCookie(c *gin.Context, userID string) {
+	const AGE = 24 * 7 * time.Hour
+	token, err := generateToken(userID)
+	if err != nil {
+		slog.Error("failed to generate token", "error", err)
+		c.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.SetCookie("auth_token", token, int(AGE.Seconds()), "/", "", true, true)
 }

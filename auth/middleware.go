@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/ToshihiroOgino/elib/generated/generated/domain"
 	"github.com/ToshihiroOgino/elib/generated/repository"
@@ -12,42 +13,33 @@ import (
 )
 
 func authFailed(c *gin.Context, reason string) {
-	switch c.Request.Method {
-	case http.MethodGet:
-		c.Redirect(http.StatusPermanentRedirect, "/user/login")
-		c.Abort()
-	default:
-		c.JSON(http.StatusUnauthorized, gin.H{"error": reason})
-		c.Abort()
-	}
+	c.JSON(http.StatusUnauthorized, gin.H{"error": reason})
+	c.Abort()
 }
 
 const authTokenCookie = "auth_token"
 const userCookie = "user"
 
+func parseBearerToken(bearerToken string) (string, error) {
+	parts := strings.Split(bearerToken, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", errors.New("invalid bearer token")
+	}
+	return parts[1], nil
+}
+
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var tokenStr string
-		switch c.Request.Method {
-		case http.MethodGet:
-			authCookie, err := c.Cookie(authTokenCookie)
-			if err != nil {
-				authFailed(c, "authorization failed")
-				return
-			}
-			tokenStr = authCookie
-		default:
-			authHeader := c.GetHeader("Authorization")
-			if authHeader == "" {
-				authFailed(c, "authorization failed")
-				return
-			}
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				authFailed(c, "authorization failed")
-				return
-			}
-			tokenStr = parts[1]
+		bearerToken, err := c.Cookie(authTokenCookie)
+		if err != nil {
+			authFailed(c, err.Error())
+			return
+		}
+
+		tokenStr, err := parseBearerToken(bearerToken)
+		if err != nil {
+			authFailed(c, "invalid token format")
+			return
 		}
 
 		claims, err := ValidateToken(tokenStr)
@@ -63,6 +55,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			authFailed(c, "user not found")
 			return
 		}
+		slog.Info("user authenticated", "user_id", *user.ID, "email", *user.Email)
 		c.Set(userCookie, user)
 		c.Next()
 	}
@@ -74,9 +67,4 @@ func GetUser(c *gin.Context) *domain.User {
 		return nil
 	}
 	return user.(*domain.User)
-}
-
-func SetAuthCookie(c *gin.Context, token string) {
-	const AGE = 24 * 7 * time.Hour
-	c.SetCookie(authTokenCookie, token, int(AGE.Seconds()), "/", "", true, true)
 }

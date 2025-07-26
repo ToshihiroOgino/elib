@@ -3,26 +3,25 @@ package controller
 import (
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/ToshihiroOgino/elib/auth"
 	"github.com/ToshihiroOgino/elib/usecase"
 	"github.com/gin-gonic/gin"
 )
 
-type registerRequest struct {
-	Email    string `json:"email" form:"email" binding:"required,email"`
-	Password string `json:"password" form:"password" binding:"required,min=8"`
+type registerForm struct {
+	Email    string `form:"email" binding:"required,email"`
+	Password string `form:"password" binding:"required"`
 }
 
-type loginRequest struct {
-	Email    string `json:"email" form:"email" binding:"required,email"`
-	Password string `json:"password" form:"password" binding:"required"`
+type loginForm struct {
+	Email    string `form:"email" binding:"required"`
+	Password string `form:"password" binding:"required"`
 }
 
 type IUserController interface {
-	GetRegister(c *gin.Context)
-	GetLogin(c *gin.Context)
+	// GetRegister(c *gin.Context)
+	// GetLogin(c *gin.Context)
 	GetProfile(c *gin.Context)
 	PostRegister(c *gin.Context)
 	PostLogin(c *gin.Context)
@@ -33,7 +32,7 @@ type userController struct {
 }
 
 const URL_ROOT = "/user"
-const URL_PROFILE = URL_ROOT + "/"
+const URL_PROFILE = URL_ROOT + ""
 const URL_LOGIN = URL_ROOT + "/login"
 const URL_REGISTER = URL_ROOT + "/register"
 
@@ -62,15 +61,14 @@ func setupRoute(api IUserController, router *gin.Engine) {
 	router.POST(URL_LOGIN, api.PostLogin)
 	router.POST(URL_REGISTER, api.PostRegister)
 
-	protected := router.Group("/")
-	protected.Use(auth.AuthMiddleware())
+	router.Use(auth.AuthMiddleware())
 	{
-		protected.GET(URL_PROFILE, api.GetProfile)
+		router.GET(URL_PROFILE, api.GetProfile)
 	}
 }
 
-func (u *userController) GetRegister(c *gin.Context) {
-	var req registerRequest
+/* func (u *userController) GetRegister(c *gin.Context) {
+	var req registerForm
 
 	if err := c.ShouldBind(&req); err != nil {
 		c.HTML(http.StatusOK, "register.html", gin.H{"Error": err.Error()})
@@ -84,7 +82,7 @@ func (u *userController) GetRegister(c *gin.Context) {
 		return
 	}
 
-	token, err := auth.GenerateToken(*user.ID, *user.Email)
+	token, err := auth.GenerateToken(*user.ID)
 	if err != nil {
 		slog.Error("failed to generate token", "error", err)
 		c.HTML(http.StatusOK, "register.html", gin.H{"Error": "トークン生成に失敗しました"})
@@ -94,10 +92,8 @@ func (u *userController) GetRegister(c *gin.Context) {
 	c.SetCookie("auth_token", token, 3600, "/", "", false, true)
 	c.Redirect(http.StatusSeeOther, "/")
 }
-
 func (u *userController) GetLogin(c *gin.Context) {
-	var req loginRequest
-
+	var req loginForm
 	if err := c.ShouldBind(&req); err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{"Error": err.Error()})
 		return
@@ -113,18 +109,8 @@ func (u *userController) GetLogin(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", gin.H{"Error": "内部サーバーエラーが発生しました"})
 		return
 	}
-
-	token, err := auth.GenerateToken(req.Email, req.Email)
-	if err != nil {
-		slog.Error("login failed", "error", err)
-		c.HTML(http.StatusOK, "login.html", gin.H{"Error": "メールアドレスまたはパスワードが正しくありません"})
-		return
-	}
-
-	const AGE = time.Hour * 24 * 7
-	c.SetCookie("auth_token", token, int(AGE.Seconds()), "/", "", false, true)
 	c.Redirect(http.StatusSeeOther, "/")
-}
+} */
 
 func (u *userController) GetProfile(c *gin.Context) {
 	user := auth.GetUser(c)
@@ -136,56 +122,50 @@ func (u *userController) GetProfile(c *gin.Context) {
 }
 
 func (u *userController) PostRegister(c *gin.Context) {
-	var req registerRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var form registerForm
+	if err := c.ShouldBind(&form); err != nil {
+		slog.Error("failed to bind register form", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
 
-	user, err := u.usecase.Create(req.Email, req.Password)
+	user, err := u.usecase.Create(form.Email, form.Password)
 	if err != nil {
 		slog.Error("failed to create user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
 		return
 	}
 
-	token, err := auth.GenerateToken(*user.ID, *user.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
-		return
-	}
-
-	auth.SetAuthCookie(c, token)
-
-	c.Redirect(http.StatusPermanentRedirect, URL_PROFILE)
+	auth.SetAuthCookie(c, *user.ID)
+	c.Redirect(http.StatusSeeOther, URL_PROFILE)
 }
 
 func (u *userController) PostLogin(c *gin.Context) {
-	var req loginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var form loginForm
+	if err := c.ShouldBind(&form); err != nil {
+		slog.Error("failed to bind login form", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
 
-	isOk, err := u.usecase.Validate(req.Email, req.Password)
-	if !isOk {
-		slog.Error("validation failed", "email", req.Email, "error", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
-		return
-	} else if err != nil {
-		slog.Error("validation error", "email", req.Email, "error", err)
+	user, err := u.usecase.FindByEmail(form.Email)
+	if err != nil {
+		slog.Error("failed to get user", "email", form.Email, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	token, err := auth.GenerateToken(req.Email, req.Email)
-	if err != nil {
-		slog.Error("login failed", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+	isOk, err := u.usecase.Validate(user, form.Email, form.Password)
+	if !isOk {
+		slog.Error("validation failed", "email", form.Email, "error", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
+		return
+	} else if err != nil {
+		slog.Error("validation error", "email", form.Email, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	auth.SetAuthCookie(c, token)
-
+	auth.SetAuthCookie(c, *user.ID)
 	c.Redirect(http.StatusSeeOther, URL_PROFILE)
 }

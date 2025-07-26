@@ -14,8 +14,8 @@ import (
 
 type IUserUsecase interface {
 	Create(email string, password string) (*domain.User, error)
-	// Login(email string, password string) (string, error)
-	Validate(email string, password string) (bool, error)
+	Validate(user *domain.User, email string, password string) (bool, error)
+	FindByEmail(email string) (*domain.User, error)
 }
 
 type userUsecase struct {
@@ -83,12 +83,9 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 	return user, nil
 }
 
-func (u *userUsecase) Validate(email string, password string) (bool, error) {
-	q, repo := u.newQuery()
-	user, err := repo.Where(q.User.Email.Eq(email)).First()
-	if err != nil {
-		slog.Error("failed to find user", "email", email, "error", err)
-		return false, errors.New("invalid email or password")
+func (u *userUsecase) Validate(user *domain.User, email string, password string) (bool, error) {
+	if !strings.EqualFold(*user.Email, email) {
+		return false, errors.New("invalid email")
 	}
 
 	if user.PasswordHash == nil {
@@ -96,11 +93,25 @@ func (u *userUsecase) Validate(email string, password string) (bool, error) {
 		return false, errors.New("user data is incomplete")
 	}
 
-	err = bcrypt.CompareHashAndPassword(*user.PasswordHash, []byte(password))
+	err := bcrypt.CompareHashAndPassword(*user.PasswordHash, []byte(password))
 	if err != nil {
 		slog.Error("invalid password", "email", email, "error", err)
-		return false, errors.New("invalid email or password")
+		return false, errors.New("invalid password")
 	}
 
 	return true, nil
+}
+
+func (u *userUsecase) FindByEmail(email string) (*domain.User, error) {
+	q, repo := u.newQuery()
+	user, err := repo.Where(q.User.Email.Eq(email)).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			slog.Error("user not found", "email", email)
+			return nil, errors.New("user not found")
+		}
+		slog.Error("failed to get user by email", "email", email, "error", err)
+		return nil, err
+	}
+	return user, nil
 }
