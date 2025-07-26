@@ -13,7 +13,7 @@
                         <div class="alert alert-danger">{{.Error}}</div>
                         {{end}}
 
-                        <form action="/api/login" method="POST">
+                        <form action="" method="POST">
                             <div class="mb-3">
                                 <label for="email" class="form-label">メールアドレス</label>
                                 <input type="email" class="form-control" id="email" name="email" required>
@@ -28,7 +28,7 @@
                         </form>
 
                         <div class="text-center mt-3">
-                            <p>アカウントをお持ちでない方は <a href="/register">こちら</a></p>
+                            <p>アカウントをお持ちでない方は <a href="{{.register_url}}">こちら</a></p>
                         </div>
                     </div>
                 </div>

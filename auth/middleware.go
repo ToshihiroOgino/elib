@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ToshihiroOgino/elib/generated/generated/domain"
 	"github.com/ToshihiroOgino/elib/generated/repository"
@@ -10,30 +11,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func authFailed(c *gin.Context) {
-	c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization failed"})
-	c.Abort()
+func authFailed(c *gin.Context, reason string) {
+	switch c.Request.Method {
+	case http.MethodGet:
+		c.Redirect(http.StatusPermanentRedirect, "/user/login")
+		c.Abort()
+	default:
+		c.JSON(http.StatusUnauthorized, gin.H{"error": reason})
+		c.Abort()
+	}
 }
+
+const authTokenCookie = "auth_token"
+const userCookie = "user"
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenStr string
-		if c.Request.Method == http.MethodGet {
-			authCookie, err := c.Cookie("auth_token")
+		switch c.Request.Method {
+		case http.MethodGet:
+			authCookie, err := c.Cookie(authTokenCookie)
 			if err != nil {
-				authFailed(c)
+				authFailed(c, "authorization failed")
 				return
 			}
 			tokenStr = authCookie
-		} else if c.Request.Method == http.MethodPost {
+		default:
 			authHeader := c.GetHeader("Authorization")
 			if authHeader == "" {
-				authFailed(c)
+				authFailed(c, "authorization failed")
 				return
 			}
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				authFailed(c)
+				authFailed(c, "authorization failed")
 				return
 			}
 			tokenStr = parts[1]
@@ -41,7 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		claims, err := ValidateToken(tokenStr)
 		if err != nil {
-			authFailed(c)
+			authFailed(c, "authorization failed")
 			return
 		}
 
@@ -49,24 +60,23 @@ func AuthMiddleware() gin.HandlerFunc {
 		q := repository.Use(db).User
 		user, err := q.WithContext(c).Where(q.ID.Eq(claims.UserID)).First()
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
-			c.Abort()
+			authFailed(c, "user not found")
 			return
 		}
-
-		c.Set("user", user)
+		c.Set(userCookie, user)
 		c.Next()
 	}
 }
 
 func GetUser(c *gin.Context) *domain.User {
-	user, exists := c.Get("user")
+	user, exists := c.Get(userCookie)
 	if !exists {
 		return nil
 	}
 	return user.(*domain.User)
 }
 
-func RequireAuth() gin.HandlerFunc {
-	return AuthMiddleware()
+func SetAuthCookie(c *gin.Context, token string) {
+	const AGE = 24 * 7 * time.Hour
+	c.SetCookie(authTokenCookie, token, int(AGE.Seconds()), "/", "", true, true)
 }

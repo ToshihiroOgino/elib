@@ -1,6 +1,4 @@
--- 古いテーブルが存在する場合に備えて削除
 DROP TABLE IF EXISTS books;
-
 DROP TABLE IF EXISTS users;
 
 -- ユーザー情報を格納するテーブル

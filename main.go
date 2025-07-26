@@ -17,12 +17,12 @@ func main() {
 	defer sqlite.CloseDB()
 
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
 	router.LoadHTMLGlob("templates/*/*")
 	router.Static("/static", "./static")
 
-	controller := controller.NewController()
-	controller.SetupRoutes(router)
+	controller.NewController(router)
 
 	serverAddr := fmt.Sprintf(":%d", env.Get().Port)
 	slog.Info("Server starting", "address", serverAddr)
