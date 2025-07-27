@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/ToshihiroOgino/elib/generated/generated/domain"
+	"github.com/ToshihiroOgino/elib/domain"
 	"github.com/gin-gonic/gin"
 )
 

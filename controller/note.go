@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ToshihiroOgino/elib/generated/generated/domain"
+	"github.com/ToshihiroOgino/elib/domain"
 	"github.com/ToshihiroOgino/elib/secure"
 	"github.com/ToshihiroOgino/elib/usecase"
 	"github.com/gin-gonic/gin"

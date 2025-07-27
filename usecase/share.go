@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/ToshihiroOgino/elib/generated/generated/domain"
-	"github.com/ToshihiroOgino/elib/generated/repository"
+	"github.com/ToshihiroOgino/elib/domain"
 	"github.com/ToshihiroOgino/elib/infra/sqlite"
+	"github.com/ToshihiroOgino/elib/repository"
 	"gorm.io/gorm"
 )
 

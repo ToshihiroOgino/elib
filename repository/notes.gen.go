@@ -17,7 +17,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ToshihiroOgino/elib/generated/generated/domain"
+	"github.com/ToshihiroOgino/elib/domain"
 )
 
 func newNote(db *gorm.DB, opts ...gen.DOOption) note {

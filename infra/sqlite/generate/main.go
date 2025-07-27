@@ -13,8 +13,8 @@ func main() {
 	slog.Info("Starting code generation")
 
 	g := gen.NewGenerator(gen.Config{
-		OutPath:       "generated/repository",
-		ModelPkgPath:  "generated/domain",
+		OutPath:       "repository",
+		ModelPkgPath:  "domain",
 		Mode:          gen.WithDefaultQuery | gen.WithQueryInterface,
 		FieldNullable: true,
 	})

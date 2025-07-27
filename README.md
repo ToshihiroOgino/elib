@@ -1,17 +1,17 @@
 # ELib
 
-シンプルなWebベースのメモアプリケーション。
+シンプルなWebベースのメモアプリケーション
 
 ## 機能
 
 - ユーザー認証（ログイン・登録）
 - メモの作成・編集・削除
-- リアルタイム統計（文字数・行数・カーソル位置）
+- リアルタイム統計情報表示（文字数・行数・カーソル位置）
 - 自動保存機能
 - 共有機能
   - 閲覧のみの共有リンク
   - 編集可能な共有リンク
-  - リンクの管理・削除
+  - リンク再取得・削除
 
 ## 共有機能の使い方
 
@@ -30,21 +30,26 @@
 
 - **閲覧のみ**: 共有リンクにアクセスすると読み取り専用でメモが表示される
 - **編集可能**: 共有リンクにアクセスするとメモの編集が可能
-  - リアルタイムで統計情報が更新される
-  - 自動保存機能により変更が自動的に保存される
-  - タイトルもクリックして編集可能
 
-## DB 初期化
+## DB
+
+### 初期化
 
 - Windows: `get-Content .\sqlite\init.sql | sqlite3.exe .\sqlite\db.sqlite3`
 - Linux: `sqlite3 ./sqlite/db.sqlite3 < ./sqlite/init.sql`
 
-## コード生成
+### Migration
 
-`go run .\infra\sqlite\generate\main.go'
+`sqlite\migration` のSQLファイルをタイムスタンプ順に実行する。
 
-`generated`以下にコードが生成される。これらのファイルは手動で編集しないこと。
+`get-Content .\sqlite\migration\xxx.sql | sqlite3.exe .\sqlite\db.sqlite3`
+
+### Domain, Repositoryのコード生成
+
+`sqlite\db.sqlite3` を参照し、スキーマベースのコード生成を行う。
+
+`go run .\infra\sqlite\generate\main.go`
 
 ## 実行
 
-`go run ./main.go`
+`go run ./main.go` または、 `air`
