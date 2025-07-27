@@ -4,9 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ToshihiroOgino/elib/auth"
 	"github.com/ToshihiroOgino/elib/generated/generated/domain"
-	"github.com/ToshihiroOgino/elib/security"
+	"github.com/ToshihiroOgino/elib/secure"
 	"github.com/ToshihiroOgino/elib/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +40,7 @@ func NewNoteController(router *gin.Engine) INoteController {
 
 func setupNoteRoute(api INoteController, router *gin.Engine) {
 	noteGroup := router.Group("/note")
-	noteGroup.Use(auth.AuthMiddleware())
+	noteGroup.Use(secure.AuthMiddleware())
 	{
 		noteGroup.GET("", api.getNote)
 		noteGroup.GET("/:id", api.getNoteById)
@@ -52,7 +51,7 @@ func setupNoteRoute(api INoteController, router *gin.Engine) {
 }
 
 func (n *noteController) getNote(c *gin.Context) {
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 
 	// ユーザーの全メモを取得
 	notes, err := n.noteUsecase.FindNotesByUserID(user.ID)
@@ -84,16 +83,16 @@ func (n *noteController) getNote(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title":               "メモエディター",
-		"note":                currentNote,
-		"notes":               notes,
-		"shares":              shares,
-		security.CSRFTokenKey: security.GetCSRFToken(c),
+		"title":             "メモエディター",
+		"note":              currentNote,
+		"notes":             notes,
+		"shares":            shares,
+		secure.CSRFTokenKey: secure.GetCSRFToken(c),
 	})
 }
 
 func (n *noteController) getNoteById(c *gin.Context) {
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 	noteId := c.Param("id")
 
 	note, err := n.noteUsecase.Find(noteId)
@@ -124,16 +123,16 @@ func (n *noteController) getNoteById(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title":               "メモエディター",
-		"note":                note,
-		"notes":               notes,
-		"shares":              shares,
-		security.CSRFTokenKey: security.GetCSRFToken(c),
+		"title":             "メモエディター",
+		"note":              note,
+		"notes":             notes,
+		"shares":            shares,
+		secure.CSRFTokenKey: secure.GetCSRFToken(c),
 	})
 }
 
 func (n *noteController) getCreateNewNote(c *gin.Context) {
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 
 	// 新規メモを作成
 	newNote, err := n.noteUsecase.CreateNote(user)
@@ -147,7 +146,7 @@ func (n *noteController) getCreateNewNote(c *gin.Context) {
 }
 
 func (n *noteController) postSaveNote(c *gin.Context) {
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 
 	var req saveNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -157,13 +156,13 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 	}
 
 	// Validate and sanitize input
-	title, titleValid := security.ValidateTextInput(req.Title, 500) // Max 500 characters for title
+	title, titleValid := secure.ValidateTextInput(req.Title, 500) // Max 500 characters for title
 	if !titleValid {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid title"})
 		return
 	}
 
-	content, contentValid := security.ValidateTextInput(req.Content, 1000000) // Max 1MB for content
+	content, contentValid := secure.ValidateTextInput(req.Content, 1000000) // Max 1MB for content
 	if !contentValid {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid content"})
 		return
@@ -197,7 +196,7 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 }
 
 func (n *noteController) deleteNote(c *gin.Context) {
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 	noteId := c.Param("id")
 
 	// メモを取得して権限チェック

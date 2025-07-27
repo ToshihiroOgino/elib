@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ToshihiroOgino/elib/auth"
+	"github.com/ToshihiroOgino/elib/secure"
 	"github.com/ToshihiroOgino/elib/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -46,7 +46,7 @@ func setupShareRoute(i IShareController, router *gin.Engine) {
 	shareGroup := router.Group("/share")
 	shareGroup.GET("/:id", i.getSharedNote)
 	shareGroup.PUT("/:id", i.putEditSharedNote)
-	shareGroup.Use(auth.AuthMiddleware())
+	shareGroup.Use(secure.AuthMiddleware())
 	{
 		shareGroup.POST("", i.postShareNote)
 		shareGroup.DELETE("/:id", i.deleteShare)
@@ -67,7 +67,7 @@ func (i *shareController) getSharedNote(c *gin.Context) {
 		return
 	}
 
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 	if user == nil {
 		user = i.userUsecase.CreateGuestUser()
 	}
@@ -96,7 +96,7 @@ func (i *shareController) postShareNote(c *gin.Context) {
 		return
 	}
 
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 	if user == nil || user.ID != note.AuthorID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to share this note."})
 		return
@@ -125,7 +125,7 @@ func (i *shareController) deleteShare(c *gin.Context) {
 		return
 	}
 
-	user := auth.GetSessionUser(c)
+	user := secure.GetSessionUser(c)
 	if user == nil || user.ID != note.AuthorID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to delete this share."})
 		return

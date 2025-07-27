@@ -1,4 +1,4 @@
-package auth
+package secure
 
 import (
 	"errors"
@@ -18,12 +18,11 @@ func authFailed(c *gin.Context, err error) {
 	c.Abort()
 }
 
-const authTokenCookieKey = "auth_token"
 const userKey = "user"
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := GetLoggedInUser(c)
+		user, err := ValidateUserSession(c)
 		if err != nil {
 			authFailed(c, err)
 			return
@@ -50,7 +49,7 @@ func parseBearerToken(bearerToken string) (string, error) {
 }
 
 func GetLoggedInUser(c *gin.Context) (*domain.User, error) {
-	bearerToken, err := c.Cookie(authTokenCookieKey)
+	bearerToken, err := c.Cookie(AuthTokenCookieKey)
 	if err != nil {
 		bearerToken = c.GetHeader("Authorization")
 		if bearerToken == "" {
@@ -79,6 +78,7 @@ func GetLoggedInUser(c *gin.Context) (*domain.User, error) {
 }
 
 func ClearAuthCookie(c *gin.Context) {
-	c.SetCookie(authTokenCookieKey, "", -1, "/", "", false, true)
-	slog.Info("cleared auth cookie")
+	// Use the centralized session manager to destroy session
+	DestroyUserSession(c)
+	slog.Info("session destroyed")
 }

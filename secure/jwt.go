@@ -1,4 +1,4 @@
-package auth
+package secure
 
 import (
 	"errors"
@@ -68,7 +68,6 @@ func ValidateToken(tokenString string) (*Claims, error) {
 }
 
 func SetAuthCookie(c *gin.Context, userID string) {
-	const AGE = 24 * 7 * time.Hour
 	token, err := generateToken(userID)
 	if err != nil {
 		slog.Error("failed to generate token", "error", err)
@@ -76,5 +75,6 @@ func SetAuthCookie(c *gin.Context, userID string) {
 		return
 	}
 
-	c.SetCookie(authTokenCookieKey, token, int(AGE.Seconds()), "/", "", true, true)
+	// Use the centralized cookie manager
+	SetAuthCookieSecure(c, token)
 }

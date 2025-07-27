@@ -4,8 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ToshihiroOgino/elib/auth"
-	"github.com/ToshihiroOgino/elib/security"
+	"github.com/ToshihiroOgino/elib/secure"
 	"github.com/ToshihiroOgino/elib/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -54,9 +53,9 @@ func (u *userController) getLogin(c *gin.Context) {
 	redirectIfLoggedIn(c)
 
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"title":               "Login",
-		"register_url":        "/user/register",
-		security.CSRFTokenKey: security.GetCSRFToken(c),
+		"title":             "Login",
+		"register_url":      "/user/register",
+		secure.CSRFTokenKey: secure.GetCSRFToken(c),
 	})
 }
 
@@ -64,9 +63,9 @@ func (u *userController) getRegister(c *gin.Context) {
 	redirectIfLoggedIn(c)
 
 	c.HTML(http.StatusOK, "register.html", gin.H{
-		"title":               "Register",
-		"login_url":           "/user/login",
-		security.CSRFTokenKey: security.GetCSRFToken(c),
+		"title":             "Register",
+		"login_url":         "/user/login",
+		secure.CSRFTokenKey: secure.GetCSRFToken(c),
 	})
 }
 
@@ -85,7 +84,7 @@ func (u *userController) postRegister(c *gin.Context) {
 		return
 	}
 
-	auth.SetAuthCookie(c, user.ID)
+	secure.SetAuthCookie(c, user.ID)
 	c.Redirect(http.StatusSeeOther, "/note")
 }
 
@@ -115,12 +114,12 @@ func (u *userController) postLogin(c *gin.Context) {
 		return
 	}
 
-	auth.SetAuthCookie(c, user.ID)
+	secure.SetAuthCookie(c, user.ID)
 	c.Redirect(http.StatusSeeOther, "/note")
 }
 
 func redirectIfLoggedIn(c *gin.Context) {
-	user, err := auth.GetLoggedInUser(c)
+	user, err := secure.GetLoggedInUser(c)
 	if err == nil && user != nil {
 		slog.Info("user already logged in", "user_id", user.ID, "email", user.Email)
 		c.Redirect(http.StatusSeeOther, "/note")
@@ -129,7 +128,7 @@ func redirectIfLoggedIn(c *gin.Context) {
 }
 
 func (u *userController) postLogout(c *gin.Context) {
-	auth.ClearAuthCookie(c)
+	secure.ClearAuthCookie(c)
 	slog.Info("user logged out")
 	c.Redirect(http.StatusSeeOther, "/user/login")
 }

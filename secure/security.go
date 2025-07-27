@@ -1,7 +1,8 @@
-package security
+package secure
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 
 	"github.com/gin-gonic/gin"
@@ -32,27 +33,37 @@ func CSRFMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Method == "GET" || c.Request.Method == "HEAD" || c.Request.Method == "OPTIONS" {
 			token := generateCSRFToken()
-			SetCSRFToken(c, token)
+			SetCSRFToken(c, token) // This now also sets the secure cookie
 			c.Next()
 			return
 		}
 
-		if c.GetHeader("Content-Type") == "application/json" {
-			tokenFromHeader := c.GetHeader("X-CSRF-Token")
-			if tokenFromHeader == "" {
+		expectedToken := GetCSRFToken(c)
+		if expectedToken == "" {
+			var err error
+			expectedToken, err = GetCookieSecure(c, CSRFTokenCookieKey)
+			if err != nil || expectedToken == "" {
 				c.JSON(403, gin.H{"error": "CSRF token required"})
 				c.Abort()
 				return
 			}
-			// For simplicity, we'll validate that token exists and is not empty
-			// In production, you would validate against a session-stored token
-			// TODO: Implement proper CSRF token validation
-			c.Next()
+		}
+
+		var clientToken string
+		if c.GetHeader("Content-Type") == "application/json" {
+			clientToken = c.GetHeader("X-CSRF-Token")
+		} else {
+			clientToken = c.PostForm(CSRFTokenKey)
+		}
+
+		if clientToken == "" {
+			c.JSON(403, gin.H{"error": "CSRF token required"})
+			c.Abort()
 			return
 		}
-		tokenFromForm := c.PostForm(CSRFTokenKey)
-		if tokenFromForm == "" {
-			c.JSON(403, gin.H{"error": "CSRF token required"})
+
+		if !validateCSRFToken(expectedToken, clientToken) {
+			c.JSON(403, gin.H{"error": "CSRF token validation failed"})
 			c.Abort()
 			return
 		}
@@ -80,4 +91,29 @@ func GetCSRFToken(c *gin.Context) string {
 func SetCSRFToken(c *gin.Context, token string) {
 	c.Set(CSRFTokenKey, token)
 	c.Header("X-CSRF-Token", token)
+	// Also save to secure cookie for persistence across requests
+	SetCSRFCookieSecure(c, token)
+}
+
+func validateCSRFToken(expected, actual string) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(expected), []byte(actual)) == 1
+}
+
+func GetCSRFTokenFromAuth(c *gin.Context) (string, error) {
+	// Verify user is authenticated
+	_, err := GetLoggedInUser(c)
+	if err != nil {
+		return "", err
+	}
+
+	// Get CSRF token from secure cookie using centralized cookie manager
+	csrfToken, err := GetCookieSecure(c, CSRFTokenCookieKey)
+	if err != nil || csrfToken == "" {
+		return "", err
+	}
+
+	return csrfToken, nil
 }
