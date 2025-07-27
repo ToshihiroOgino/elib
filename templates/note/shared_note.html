@@ -25,19 +25,19 @@
                   padding: 8px 16px;
                   border-radius: 8px;
                 "
-                >{{.note.Title}}</span
+                >{{.note.Title | escapeHTML}}</span
               >
               <input
                 type="text"
                 id="title-input"
-                value="{{.note.Title}}"
+                value="{{.note.Title | escapeHTML}}"
                 class="form-control d-none"
                 onblur="saveTitle()"
                 style="font-size: 1.75rem; font-weight: 500"
                 onkeypress="if(event.key==='Enter') saveTitle()"
               />
               {{else}}
-              <span>{{.note.Title}}</span>
+              <span>{{.note.Title | escapeHTML}}</span>
               {{end}}
             </h3>
           </div>
@@ -78,7 +78,7 @@
             {{if .share.Editable}}
             <!-- 編集可能バージョン -->
             <form id="shared-note-form">
-              <input type="hidden" id="note-id" value="{{.note.ID}}" />
+              <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
               <textarea
                 id="note-content"
                 class="form-control"
@@ -93,9 +93,7 @@
                 "
                 placeholder="ここにメモを入力してください..."
                 oninput="updateStats()"
-              >
-{{.note.Content}}</textarea
-              >
+              >{{.note.Content | escapeHTML}}</textarea>
             </form>
             {{else}}
             <!-- 読み取り専用バージョン -->

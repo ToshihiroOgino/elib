@@ -12,6 +12,9 @@
         {{end}}
 
         <form action="" method="POST">
+          {{if .csrf_token}}
+          <input type="hidden" name="csrf_token" value="{{.csrf_token}}">
+          {{end}}
           <div class="mb-3">
             <label for="email" class="form-label">メールアドレス</label>
             <input

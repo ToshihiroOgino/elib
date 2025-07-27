@@ -8,6 +8,7 @@ import (
 	"github.com/ToshihiroOgino/elib/env"
 	"github.com/ToshihiroOgino/elib/infra/sqlite"
 	"github.com/ToshihiroOgino/elib/log"
+	"github.com/ToshihiroOgino/elib/security"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +20,8 @@ func main() {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
-	router.LoadHTMLGlob("templates/*/*")
+	router.Use(security.SecurityMiddleware(), security.CSRFMiddleware())
+	router.SetHTMLTemplate(security.LoadSecureTemplates())
 	router.Static("/static", "./static")
 
 	controller.NewController(router)

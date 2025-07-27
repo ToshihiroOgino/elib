@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ToshihiroOgino/elib/auth"
+	"github.com/ToshihiroOgino/elib/security"
 	"github.com/ToshihiroOgino/elib/usecase"
 	"github.com/gin-gonic/gin"
 )
@@ -51,17 +52,21 @@ func setupUserRoute(api IUserController, router *gin.Engine) {
 
 func (u *userController) getLogin(c *gin.Context) {
 	redirectIfLoggedIn(c)
+
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"title":        "Login",
-		"register_url": "/user/register",
+		"title":               "Login",
+		"register_url":        "/user/register",
+		security.CSRFTokenKey: security.GetCSRFToken(c),
 	})
 }
 
 func (u *userController) getRegister(c *gin.Context) {
 	redirectIfLoggedIn(c)
+
 	c.HTML(http.StatusOK, "register.html", gin.H{
-		"title":     "Register",
-		"login_url": "/user/login",
+		"title":               "Register",
+		"login_url":           "/user/login",
+		security.CSRFTokenKey: security.GetCSRFToken(c),
 	})
 }
 

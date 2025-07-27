@@ -19,11 +19,11 @@
                 border-radius: 8px;
               "
             >
-              <span id="note-title">{{.note.Title}}</span>
+              <span id="note-title">{{.note.Title | escapeHTML}}</span>
               <input
                 type="text"
                 id="title-input"
-                value="{{.note.Title}}"
+                value="{{.note.Title | escapeHTML}}"
                 class="form-control d-none"
                 style="font-size: 1.75rem; font-weight: 500"
                 onblur="saveTitle()"
@@ -47,6 +47,9 @@
             共有(編集可)
           </button>
           <form action="/user/logout" method="POST" class="d-inline">
+            {{if .csrf_token}}
+            <input type="hidden" name="csrf_token" value="{{.csrf_token}}">
+            {{end}}
             <button type="submit" class="btn btn-outline-light me-2">
               ログアウト
             </button>
@@ -73,12 +76,12 @@
             {{range .notes}}
             <div
               class="card mb-2 note-item"
-              data-note-id="{{.ID}}"
-              onclick="selectNote('{{.ID}}')"
+              data-note-id="{{.ID | escapeHTML}}"
+              onclick="selectNote('{{.ID | safeJSON}}')"
             >
               <div class="card-body p-2">
                 <h6 class="card-title mb-1" style="font-size: 0.9rem">
-                  {{.Title}}
+                  {{.Title | escapeHTML}}
                 </h6>
                 <small
                   class="text-muted"
@@ -113,14 +116,14 @@
                   <div>
                     <button
                       class="btn btn-sm btn-outline-primary me-1"
-                      onclick="copyShareLink('{{$share.ID}}')"
+                      onclick="copyShareLink('{{$share.ID | safeJSON}}')"
                       title="リンクをコピー"
                     >
                       📋
                     </button>
                     <button
                       class="btn btn-sm btn-outline-danger"
-                      onclick="deleteShare('{{$share.ID}}')"
+                      onclick="deleteShare('{{$share.ID | safeJSON}}')"
                       title="削除"
                     >
                       🗑️
@@ -143,7 +146,7 @@
           style="height: calc(100vh - 56px - 40px); overflow-y: auto"
         >
           <form id="note-form">
-            <input type="hidden" id="note-id" value="{{.note.ID}}" />
+            <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
             <textarea
               id="note-content"
               class="form-control"
@@ -157,9 +160,7 @@
               "
               placeholder="ここにメモを入力してください..."
               oninput="updateStats()"
-            >
-{{.note.Content}}</textarea
-            >
+            >{{.note.Content | escapeHTML}}</textarea>
           </form>
         </div>
       </div>
@@ -184,7 +185,10 @@
 
   <script>
     // noteIdをグローバル変数として設定
-    window.noteId = "{{.note.ID}}";
+    window.noteId = "{{.note.ID | safeJSON}}";
+    
+    // CSRF token setup
+    window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   </script>
   <script src="/static/js/editor.js"></script>
 </body>

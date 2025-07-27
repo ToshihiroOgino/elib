@@ -6,7 +6,9 @@ import (
 
 	"github.com/ToshihiroOgino/elib/auth"
 	"github.com/ToshihiroOgino/elib/generated/generated/domain"
+	"github.com/ToshihiroOgino/elib/security"
 	"github.com/ToshihiroOgino/elib/usecase"
+	"github.com/ToshihiroOgino/elib/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -83,10 +85,11 @@ func (n *noteController) getNote(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title":  "メモエディター",
-		"note":   currentNote,
-		"notes":  notes,
-		"shares": shares,
+		"title":               "メモエディター",
+		"note":                currentNote,
+		"notes":               notes,
+		"shares":              shares,
+		security.CSRFTokenKey: security.GetCSRFToken(c),
 	})
 }
 
@@ -122,10 +125,11 @@ func (n *noteController) getNoteById(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title":  "メモエディター",
-		"note":   note,
-		"notes":  notes,
-		"shares": shares,
+		"title":               "メモエディター",
+		"note":                note,
+		"notes":               notes,
+		"shares":              shares,
+		security.CSRFTokenKey: security.GetCSRFToken(c),
 	})
 }
 
@@ -153,6 +157,19 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 		return
 	}
 
+	// Validate and sanitize input
+	title, titleValid := util.ValidateTextInput(req.Title, 500) // Max 500 characters for title
+	if !titleValid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid title"})
+		return
+	}
+
+	content, contentValid := util.ValidateTextInput(req.Content, 1000000) // Max 1MB for content
+	if !contentValid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid content"})
+		return
+	}
+
 	// メモを取得して権限チェック
 	note, err := n.noteUsecase.Find(req.ID)
 	if err != nil {
@@ -166,9 +183,9 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 		return
 	}
 
-	// メモを更新
-	note.Title = req.Title
-	note.Content = req.Content
+	// メモを更新（サニタイズされた値を使用）
+	note.Title = title
+	note.Content = content
 
 	_, err = n.noteUsecase.UpdateNote(note)
 	if err != nil {

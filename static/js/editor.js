@@ -43,10 +43,14 @@ function saveNote() {
   const title = document.getElementById("title-input").value;
   const content = document.getElementById("note-content").value;
 
+  // Get CSRF token
+  const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
   fetch("/note/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify({
       id: noteId,
@@ -59,6 +63,8 @@ function saveNote() {
       if (data.status === "success") {
         document.getElementById("save-status").textContent = "保存済み";
         isModified = false;
+      } else {
+        document.getElementById("save-status").textContent = "保存エラー";
       }
     })
     .catch((error) => {
@@ -74,13 +80,20 @@ function createNewNote() {
 function deleteNote() {
   if (confirm("このメモを削除しますか？")) {
     const noteId = document.getElementById("note-id").value;
-    fetch("/note/delete/" + noteId, {
+    const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    
+    fetch("/note/delete/" + encodeURIComponent(noteId), {
       method: "DELETE",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
           window.location.href = "/note/new";
+        } else {
+          alert("削除に失敗しました");
         }
       })
       .catch((error) => {
@@ -91,7 +104,8 @@ function deleteNote() {
 }
 
 function selectNote(noteId) {
-  window.location.href = "/note/" + noteId;
+  // URL encode the noteId to prevent injection
+  window.location.href = "/note/" + encodeURIComponent(noteId);
 }
 
 // 共有機能（閲覧のみ）
@@ -107,6 +121,7 @@ function shareEditable() {
 function shareNote(editable) {
   const noteId = document.getElementById("note-id").value;
   const shareType = editable ? "編集可" : "閲覧のみ";
+  const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
   if (!noteId) {
     showToast("共有するメモが選択されていません");
@@ -117,6 +132,7 @@ function shareNote(editable) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify({
       noteId: noteId,
@@ -132,7 +148,7 @@ function shareNote(editable) {
     })
     .then((data) => {
       if (data.shareId) {
-        const shareUrl = window.location.origin + "/share/" + data.shareId;
+        const shareUrl = window.location.origin + "/share/" + encodeURIComponent(data.shareId);
 
         // 共有リストを更新
         addShareToList(data.shareId, editable);
@@ -235,8 +251,13 @@ function fallbackCopyToClipboard(text) {
 // 共有を削除
 function deleteShare(shareId) {
   if (confirm("この共有リンクを削除しますか？")) {
-    fetch("/share/" + shareId, {
+    const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    
+    fetch("/share/" + encodeURIComponent(shareId), {
       method: "DELETE",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
     })
       .then((response) => {
         if (response.status === 200) {
