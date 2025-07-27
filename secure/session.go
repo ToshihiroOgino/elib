@@ -57,7 +57,6 @@ func (sm *SessionManager) CreateSession(c *gin.Context, user *domain.User) error
 	return nil
 }
 
-// RefreshSession updates the session's last seen time
 func (sm *SessionManager) RefreshSession(c *gin.Context, user *domain.User) error {
 	// Get existing session data
 	sessionData, exists := c.Get("session_data")
@@ -81,7 +80,6 @@ func (sm *SessionManager) RefreshSession(c *gin.Context, user *domain.User) erro
 	return nil
 }
 
-// GetSessionData retrieves session data from context
 func (sm *SessionManager) GetSessionData(c *gin.Context) (SessionData, bool) {
 	sessionData, exists := c.Get("session_data")
 	if !exists {
@@ -90,7 +88,6 @@ func (sm *SessionManager) GetSessionData(c *gin.Context) (SessionData, bool) {
 	return sessionData.(SessionData), true
 }
 
-// ValidateSession checks if the current session is valid
 func (sm *SessionManager) ValidateSession(c *gin.Context) (*domain.User, error) {
 	// First try to get user using existing authentication
 	user, err := GetLoggedInUser(c)
@@ -107,7 +104,6 @@ func (sm *SessionManager) ValidateSession(c *gin.Context) (*domain.User, error) 
 	return user, nil
 }
 
-// DestroySession removes all session data and cookies
 func (sm *SessionManager) DestroySession(c *gin.Context) {
 	// Clear all authentication cookies
 	sm.cookieManager.ClearAllAuthCookies(c)
@@ -124,15 +120,8 @@ func (sm *SessionManager) DestroySession(c *gin.Context) {
 	c.Set(userKey, nil)
 }
 
-// IsSessionExpired checks if session has expired based on inactivity
-func (sm *SessionManager) IsSessionExpired(sessionData SessionData, maxInactivity time.Duration) bool {
-	return time.Since(sessionData.LastSeen) > maxInactivity
-}
-
-// Global session manager instance
 var globalSessionManager = NewSessionManager()
 
-// Package-level convenience functions for session management
 func CreateUserSession(c *gin.Context, user *domain.User) error {
 	return globalSessionManager.CreateSession(c, user)
 }
@@ -141,18 +130,10 @@ func ValidateUserSession(c *gin.Context) (*domain.User, error) {
 	return globalSessionManager.ValidateSession(c)
 }
 
-func RefreshUserSession(c *gin.Context, user *domain.User) error {
-	return globalSessionManager.RefreshSession(c, user)
-}
-
 func GetUserSessionData(c *gin.Context) (SessionData, bool) {
 	return globalSessionManager.GetSessionData(c)
 }
 
 func DestroyUserSession(c *gin.Context) {
 	globalSessionManager.DestroySession(c)
-}
-
-func IsUserSessionExpired(sessionData SessionData, maxInactivity time.Duration) bool {
-	return globalSessionManager.IsSessionExpired(sessionData, maxInactivity)
 }
