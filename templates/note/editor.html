@@ -1,128 +1,192 @@
 {{template "header" .}}
 
 <body>
-    <div class="container-fluid p-0">
-        <!-- ヘッダー -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container-fluid">
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-outline-light me-2" onclick="createNewNote()">新規</button>
-                    <button class="btn btn-outline-light me-2" onclick="saveNote()">保存</button>
-                    <button class="btn btn-outline-light me-2" onclick="deleteNote()">削除</button>
-                    <button class="btn btn-outline-light me-2" onclick="shareReadonly()">共有(閲覧のみ)</button>
-                    <button class="btn btn-outline-light me-2" onclick="shareEditable()">共有(編集可)</button>
-                    <form action="/user/logout" method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-outline-light me-2">ログアウト</button>
-                    </form>
-                </div>
-                <div class="flex-grow-1 text-center">
-                    <h5 class="mb-0 text-white" onclick="editTitle()" style="cursor: pointer;">
-                        <span id="note-title">{{.note.Title}}</span>
-                        <input type="text" id="title-input" value="{{.note.Title}}" class="form-control d-none"
-                            onblur="saveTitle()" onkeypress="if(event.key==='Enter') saveTitle()">
-                    </h5>
-                </div>
-                <div class="text-white">
-                    行数: <span id="line-count">1</span>
-                </div>
-            </div>
-        </nav>
+  <div class="container-fluid p-0">
+    <!-- ヘッダー -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <div class="flex-grow-1 me-2">
+            <h3
+              class="mb-0 text-white"
+              onclick="editTitle()"
+              style="
+                cursor: pointer;
+                font-size: 1.75rem;
+                font-weight: 500;
+                background-color: rgba(255, 255, 255, 0.3);
+                padding: 8px 16px;
+                border-radius: 8px;
+              "
+            >
+              <span id="note-title">{{.note.Title}}</span>
+              <input
+                type="text"
+                id="title-input"
+                value="{{.note.Title}}"
+                class="form-control d-none"
+                style="font-size: 1.75rem; font-weight: 500"
+                onblur="saveTitle()"
+                onkeypress="if(event.key==='Enter') saveTitle()"
+              />
+            </h3>
+          </div>
+          <button class="btn btn-outline-light me-2" onclick="createNewNote()">
+            新規
+          </button>
+          <button class="btn btn-outline-light me-2" onclick="saveNote()">
+            保存
+          </button>
+          <button class="btn btn-outline-light me-2" onclick="deleteNote()">
+            削除
+          </button>
+          <button class="btn btn-outline-light me-2" onclick="shareReadonly()">
+            共有(閲覧のみ)
+          </button>
+          <button class="btn btn-outline-light me-2" onclick="shareEditable()">
+            共有(編集可)
+          </button>
+          <form action="/user/logout" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-outline-light me-2">
+              ログアウト
+            </button>
+          </form>
+        </div>
+        <div class="text-white">行数: <span id="line-count">1</span></div>
+      </div>
+    </nav>
 
-        <div class="row g-0">
-            <!-- サイドバー -->
-            <div class="col-md-3 bg-light border-end d-flex flex-column" style="height: calc(100vh - 56px);">
-                <!-- メモ一覧セクション -->
-                <div class="p-3 flex-grow-1 d-flex flex-column" style="min-height: 0;">
-                    <h6 class="mb-3">メモ一覧</h6>
-                    <div id="notes-list" class="flex-grow-1" style="overflow-y: auto; min-height: 200px;">
-                        {{range .notes}}
-                        <div class="card mb-2 note-item" data-note-id="{{.ID}}" onclick="selectNote('{{.ID}}')">
-                            <div class="card-body p-2">
-                                <h6 class="card-title mb-1" style="font-size: 0.9rem;">{{.Title}}</h6>
-                                <small class="text-muted"
-                                    data-utc-time='{{.UpdatedAt.Format "2006-01-02T15:04:05"}}'>{{.UpdatedAt.Format
-                                    "2006/01/02 15:04"}}</small>
-                            </div>
-                        </div>
-                        {{end}}
-                    </div>
-                </div>
-
-                <!-- シェアリストセクション -->
-                <div class="border-top p-3 d-flex flex-column" style="height: 40%; min-height: 150px;">
-                    <h6 class="mb-3">共有リンク</h6>
-                    <div id="shares-list" class="flex-grow-1" style="overflow-y: auto;">
-                        {{range $index, $share := .shares}}
-                        <div class="card mb-2 share-item">
-                            <div class="card-body p-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="badge bg-secondary me-2 share-number"></span>
-                                        {{if $share.Editable}}
-                                        <small class="text-success">編集可</small>
-                                        {{else}}
-                                        <small class="text-info">閲覧のみ</small>
-                                        {{end}}
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-primary me-1"
-                                            onclick="copyShareLink('{{$share.ID}}')" title="リンクをコピー">
-                                            📋
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger"
-                                            onclick="deleteShare('{{$share.ID}}')" title="削除">
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{else}}
-                        <div class="text-muted small">共有リンクはありません</div>
-                        {{end}}
-                    </div>
-                </div>
+    <div class="row g-0">
+      <!-- サイドバー -->
+      <div
+        class="col-md-3 bg-light border-end d-flex flex-column"
+        style="height: calc(100vh - 56px)"
+      >
+        <!-- メモ一覧セクション -->
+        <div class="p-3 flex-grow-1 d-flex flex-column" style="min-height: 0">
+          <h6 class="mb-3">メモ一覧</h6>
+          <div
+            id="notes-list"
+            class="flex-grow-1"
+            style="overflow-y: auto; min-height: 200px"
+          >
+            {{range .notes}}
+            <div
+              class="card mb-2 note-item"
+              data-note-id="{{.ID}}"
+              onclick="selectNote('{{.ID}}')"
+            >
+              <div class="card-body p-2">
+                <h6 class="card-title mb-1" style="font-size: 0.9rem">
+                  {{.Title}}
+                </h6>
+                <small
+                  class="text-muted"
+                  data-utc-time='{{.UpdatedAt.Format "2006-01-02T15:04:05"}}'
+                  >{{.UpdatedAt.Format "2006/01/02 15:04"}}</small
+                >
+              </div>
             </div>
-
-            <!-- メインコンテンツ -->
-            <div class="col-md-9">
-                <div class="p-3" style="height: calc(100vh - 56px - 40px); overflow-y: auto;">
-                    <form id="note-form">
-                        <input type="hidden" id="note-id" value="{{.note.ID}}">
-                        <textarea id="note-content" class="form-control" rows="30"
-                            style="resize: none; border: none; outline: none; font-family: monospace; line-height: 1.5;"
-                            placeholder="ここにメモを入力してください..." oninput="updateStats()">{{.note.Content}}</textarea>
-                    </form>
-                </div>
-            </div>
+            {{end}}
+          </div>
         </div>
 
-        <!-- フッター -->
-        <div class="bg-secondary text-white p-2 fixed-bottom">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-3">
-                        カーソル位置: <span id="cursor-position">1:1</span>
-                    </div>
-                    <div class="col-md-3">
-                        文字数: <span id="char-count">0</span>
-                    </div>
-                    <div class="col-md-3">
-                        行数: <span id="total-lines">1</span>
-                    </div>
-                    <div class="col-md-3">
-                        保存状態: <span id="save-status">保存済み</span>
-                    </div>
+        <!-- シェアリストセクション -->
+        <div
+          class="border-top p-3 d-flex flex-column"
+          style="height: 40%; min-height: 150px"
+        >
+          <h6 class="mb-3">共有リンク</h6>
+          <div id="shares-list" class="flex-grow-1" style="overflow-y: auto">
+            {{range $index, $share := .shares}}
+            <div class="card mb-2 share-item">
+              <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="badge bg-secondary me-2 share-number"></span>
+                    {{if $share.Editable}}
+                    <small class="text-success">編集可</small>
+                    {{else}}
+                    <small class="text-info">閲覧のみ</small>
+                    {{end}}
+                  </div>
+                  <div>
+                    <button
+                      class="btn btn-sm btn-outline-primary me-1"
+                      onclick="copyShareLink('{{$share.ID}}')"
+                      title="リンクをコピー"
+                    >
+                      📋
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      onclick="deleteShare('{{$share.ID}}')"
+                      title="削除"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
+              </div>
             </div>
+            {{else}}
+            <div class="text-muted small">共有リンクはありません</div>
+            {{end}}
+          </div>
         </div>
+      </div>
+
+      <!-- メインコンテンツ -->
+      <div class="col-md-9">
+        <div
+          class="p-3"
+          style="height: calc(100vh - 56px - 40px); overflow-y: auto"
+        >
+          <form id="note-form">
+            <input type="hidden" id="note-id" value="{{.note.ID}}" />
+            <textarea
+              id="note-content"
+              class="form-control"
+              rows="30"
+              style="
+                resize: none;
+                border: none;
+                outline: none;
+                font-family: monospace;
+                line-height: 1.5;
+              "
+              placeholder="ここにメモを入力してください..."
+              oninput="updateStats()"
+            >
+{{.note.Content}}</textarea
+            >
+          </form>
+        </div>
+      </div>
     </div>
 
-    <script>
-        // noteIdをグローバル変数として設定
-        window.noteId = '{{.note.ID}}';
-    </script>
-    <script src="/static/js/editor.js"></script>
+    <!-- フッター -->
+    <div class="bg-secondary text-white p-2 fixed-bottom">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-3">
+            カーソル位置: <span id="cursor-position">1:1</span>
+          </div>
+          <div class="col-md-3">文字数: <span id="char-count">0</span></div>
+          <div class="col-md-3">行数: <span id="total-lines">1</span></div>
+          <div class="col-md-3">
+            保存状態: <span id="save-status">保存済み</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // noteIdをグローバル変数として設定
+    window.noteId = "{{.note.ID}}";
+  </script>
+  <script src="/static/js/editor.js"></script>
 </body>
 
 {{template "footer"}}

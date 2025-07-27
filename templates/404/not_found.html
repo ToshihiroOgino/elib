@@ -1,0 +1,47 @@
+{{template "header" .}}
+
+<body>
+  <div class="container-fluid p-0">
+    <!-- ヘッダー -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+      <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">404 - ページが見つかりません</span>
+      </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+          <h2 class="mb-3">ページが見つかりません</h2>
+          <p class="lead mb-4">
+            申し訳ございませんが、お探しのページまたは共有リンクは存在しないか、削除された可能性があります。
+          </p>
+
+          <div class="d-grid gap-2 d-md-block">
+            <button
+              onclick="goBackAndReload()"
+              class="btn btn-outline-secondary btn-lg"
+            >
+              前のページに戻る
+            </button>
+          </div>
+
+          <hr class="my-5" />
+
+          <div class="text-muted">
+            <h5>考えられる原因：</h5>
+            <ul class="list-unstyled">
+              <li>• 共有リンクが無効</li>
+              <li>• URLが正しく入力されていない</li>
+              <li>• メモが削除されている</li>
+              <li>• 共有設定が変更されている</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+{{template "footer"}}

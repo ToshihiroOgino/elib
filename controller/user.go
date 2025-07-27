@@ -22,7 +22,6 @@ type loginForm struct {
 type IUserController interface {
 	getLogin(c *gin.Context)
 	getRegister(c *gin.Context)
-	getProfile(c *gin.Context)
 	postRegister(c *gin.Context)
 	postLogin(c *gin.Context)
 	postLogout(c *gin.Context)
@@ -48,11 +47,6 @@ func setupUserRoute(api IUserController, router *gin.Engine) {
 	userGroup.POST("/login", api.postLogin)
 	userGroup.POST("/register", api.postRegister)
 	userGroup.POST("/logout", api.postLogout)
-
-	userGroup.Use(auth.AuthMiddleware())
-	{
-		userGroup.GET("/profile", api.getProfile)
-	}
 }
 
 func (u *userController) getLogin(c *gin.Context) {
@@ -68,19 +62,6 @@ func (u *userController) getRegister(c *gin.Context) {
 	c.HTML(http.StatusOK, "register.html", gin.H{
 		"title":     "Register",
 		"login_url": "/user/login",
-	})
-}
-
-func (u *userController) getProfile(c *gin.Context) {
-	user := auth.GetSessionUser(c)
-
-	if user == nil {
-		user = u.usecase.CreateGuestUser()
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"id":    user.ID,
-		"email": user.Email,
 	})
 }
 
