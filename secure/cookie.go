@@ -10,7 +10,6 @@ import (
 // Cookie keys
 const (
 	AuthTokenCookieKey   = "auth_token"
-	CSRFTokenCookieKey   = "csrf_token_secure"
 	SessionDataCookieKey = "session_data"
 )
 
@@ -32,16 +31,16 @@ func DefaultCookieConfig() CookieConfig {
 		MaxAge:   int((24 * 7 * time.Hour).Seconds()), // 7 days
 		Path:     "/",
 		Domain:   "",
-		Secure:   true,                    // HTTPS only
-		HttpOnly: true,                    // No JavaScript access
-		SameSite: http.SameSiteStrictMode, // SameSite=Strict
+		Secure:   true,                 // HTTPS only
+		HttpOnly: true,                 // No JavaScript access
+		SameSite: http.SameSiteLaxMode, // SameSite=Lax
 	}
 }
 
 // SessionCookieConfig returns configuration for session cookies (shorter expiry)
 func SessionCookieConfig() CookieConfig {
 	config := DefaultCookieConfig()
-	config.MaxAge = int((1 * time.Hour).Seconds()) // 1 hour for CSRF tokens
+	config.MaxAge = int((1 * time.Hour).Seconds()) // 1 hour for session cookies
 	return config
 }
 
@@ -79,14 +78,6 @@ func (cm *CookieManager) SetAuthCookie(c *gin.Context, token string) {
 	cm.SetCookie(c, config)
 }
 
-// SetCSRFCookie sets the CSRF token cookie
-func (cm *CookieManager) SetCSRFCookie(c *gin.Context, token string) {
-	config := SessionCookieConfig()
-	config.Name = CSRFTokenCookieKey
-	config.Value = token
-	cm.SetCookie(c, config)
-}
-
 // GetCookie retrieves a cookie value
 func (cm *CookieManager) GetCookie(c *gin.Context, name string) (string, error) {
 	return c.Cookie(name)
@@ -105,7 +96,6 @@ func (cm *CookieManager) DeleteCookie(c *gin.Context, name string) {
 // ClearAllAuthCookies removes all authentication-related cookies
 func (cm *CookieManager) ClearAllAuthCookies(c *gin.Context) {
 	cm.DeleteCookie(c, AuthTokenCookieKey)
-	cm.DeleteCookie(c, CSRFTokenCookieKey)
 	cm.DeleteCookie(c, SessionDataCookieKey)
 }
 
@@ -115,10 +105,6 @@ var globalCookieManager = NewCookieManager()
 // Package-level convenience functions
 func SetAuthCookieSecure(c *gin.Context, token string) {
 	globalCookieManager.SetAuthCookie(c, token)
-}
-
-func SetCSRFCookieSecure(c *gin.Context, token string) {
-	globalCookieManager.SetCSRFCookie(c, token)
 }
 
 func GetCookieSecure(c *gin.Context, name string) (string, error) {

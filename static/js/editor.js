@@ -43,14 +43,10 @@ function saveNote() {
   const title = document.getElementById("title-input").value;
   const content = document.getElementById("note-content").value;
 
-  // Get CSRF token
-  const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
   fetch("/note/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify({
       id: noteId,
@@ -80,13 +76,9 @@ function createNewNote() {
 function deleteNote() {
   if (confirm("このメモを削除しますか？")) {
     const noteId = document.getElementById("note-id").value;
-    const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     
     fetch("/note/delete/" + encodeURIComponent(noteId), {
       method: "DELETE",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-      },
     })
       .then((response) => response.json())
       .then((data) => {
@@ -121,7 +113,6 @@ function shareEditable() {
 function shareNote(editable) {
   const noteId = document.getElementById("note-id").value;
   const shareType = editable ? "編集可" : "閲覧のみ";
-  const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
   if (!noteId) {
     showToast("共有するメモが選択されていません");
@@ -132,7 +123,6 @@ function shareNote(editable) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify({
       noteId: noteId,
@@ -251,13 +241,8 @@ function fallbackCopyToClipboard(text) {
 // 共有を削除
 function deleteShare(shareId) {
   if (confirm("この共有リンクを削除しますか？")) {
-    const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    
     fetch("/share/" + encodeURIComponent(shareId), {
       method: "DELETE",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-      },
     })
       .then((response) => {
         if (response.status === 200) {

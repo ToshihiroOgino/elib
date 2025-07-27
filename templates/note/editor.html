@@ -47,9 +47,6 @@
             共有(編集可)
           </button>
           <form action="/user/logout" method="POST" class="d-inline">
-            {{if .csrf_token}}
-            <input type="hidden" name="csrf_token" value="{{.csrf_token}}">
-            {{end}}
             <button type="submit" class="btn btn-outline-light me-2">
               ログアウト
             </button>
@@ -186,9 +183,6 @@
   <script>
     // noteIdをグローバル変数として設定
     window.noteId = "{{.note.ID | safeJSON}}";
-    
-    // CSRF token setup
-    window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   </script>
   <script src="/static/js/editor.js"></script>
 </body>

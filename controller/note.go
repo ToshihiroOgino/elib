@@ -83,11 +83,10 @@ func (n *noteController) getNote(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title":             "メモエディター",
-		"note":              currentNote,
-		"notes":             notes,
-		"shares":            shares,
-		secure.CSRFTokenKey: secure.GetCSRFToken(c),
+		"title":  "メモエディター",
+		"note":   currentNote,
+		"notes":  notes,
+		"shares": shares,
 	})
 }
 
@@ -123,11 +122,10 @@ func (n *noteController) getNoteById(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title":             "メモエディター",
-		"note":              note,
-		"notes":             notes,
-		"shares":            shares,
-		secure.CSRFTokenKey: secure.GetCSRFToken(c),
+		"title":  "メモエディター",
+		"note":   note,
+		"notes":  notes,
+		"shares": shares,
 	})
 }
 

@@ -14,7 +14,6 @@ type SessionData struct {
 	Email     string    `json:"email"`
 	LoginTime time.Time `json:"login_time"`
 	LastSeen  time.Time `json:"last_seen"`
-	CSRFToken string    `json:"csrf_token"`
 }
 
 // SessionManager provides centralized session management
@@ -32,14 +31,12 @@ func NewSessionManager() *SessionManager {
 // CreateSession creates a new user session
 func (sm *SessionManager) CreateSession(c *gin.Context, user *domain.User) error {
 	now := time.Now()
-	csrfToken := generateCSRFToken()
 
 	sessionData := SessionData{
 		UserID:    user.ID,
 		Email:     user.Email,
 		LoginTime: now,
 		LastSeen:  now,
-		CSRFToken: csrfToken,
 	}
 
 	// Generate JWT token
@@ -51,9 +48,6 @@ func (sm *SessionManager) CreateSession(c *gin.Context, user *domain.User) error
 
 	// Set auth cookie
 	sm.cookieManager.SetAuthCookie(c, token)
-
-	// Set CSRF cookie
-	sm.cookieManager.SetCSRFCookie(c, csrfToken)
 
 	// Store session data in context for current request
 	c.Set("session_data", sessionData)
@@ -75,7 +69,6 @@ func (sm *SessionManager) RefreshSession(c *gin.Context, user *domain.User) erro
 			Email:     user.Email,
 			LoginTime: now,
 			LastSeen:  now,
-			CSRFToken: generateCSRFToken(),
 		}
 	} else {
 		// Update last seen time

@@ -97,13 +97,10 @@ function saveSharedNote() {
   saveStatus.textContent = "保存中...";
   saveStatus.style.color = "#6c757d";
 
-  const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-  
   fetch(`/share/${shareId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify({
       title: title,

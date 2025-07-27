@@ -20,7 +20,7 @@ func main() {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
-	router.Use(secure.SecurityMiddleware(), secure.CSRFMiddleware())
+	router.Use(secure.SecurityMiddleware())
 	router.SetHTMLTemplate(secure.LoadSecureTemplates())
 	router.Static("/static", "./static")
 

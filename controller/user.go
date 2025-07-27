@@ -53,9 +53,8 @@ func (u *userController) getLogin(c *gin.Context) {
 	redirectIfLoggedIn(c)
 
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"title":             "Login",
-		"register_url":      "/user/register",
-		secure.CSRFTokenKey: secure.GetCSRFToken(c),
+		"title":        "Login",
+		"register_url": "/user/register",
 	})
 }
 
@@ -63,9 +62,8 @@ func (u *userController) getRegister(c *gin.Context) {
 	redirectIfLoggedIn(c)
 
 	c.HTML(http.StatusOK, "register.html", gin.H{
-		"title":             "Register",
-		"login_url":         "/user/login",
-		secure.CSRFTokenKey: secure.GetCSRFToken(c),
+		"title":     "Register",
+		"login_url": "/user/login",
 	})
 }
 
