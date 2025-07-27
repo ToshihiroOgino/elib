@@ -57,7 +57,7 @@ func safeJSONString(input string) string {
 	return input
 }
 
-func validateTextInput(input string, maxLength int) (string, bool) {
+func ValidateTextInput(input string, maxLength int) (string, bool) {
 	// Check length
 	if len(input) > maxLength {
 		return "", false

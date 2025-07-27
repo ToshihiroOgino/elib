@@ -8,7 +8,6 @@ import (
 	"github.com/ToshihiroOgino/elib/generated/generated/domain"
 	"github.com/ToshihiroOgino/elib/security"
 	"github.com/ToshihiroOgino/elib/usecase"
-	"github.com/ToshihiroOgino/elib/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -158,13 +157,13 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 	}
 
 	// Validate and sanitize input
-	title, titleValid := util.ValidateTextInput(req.Title, 500) // Max 500 characters for title
+	title, titleValid := security.ValidateTextInput(req.Title, 500) // Max 500 characters for title
 	if !titleValid {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid title"})
 		return
 	}
 
-	content, contentValid := util.ValidateTextInput(req.Content, 1000000) // Max 1MB for content
+	content, contentValid := security.ValidateTextInput(req.Content, 1000000) // Max 1MB for content
 	if !contentValid {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid content"})
 		return
