@@ -32,6 +32,8 @@ func newNote(db *gorm.DB, opts ...gen.DOOption) note {
 	_note.AuthorID = field.NewString(tableName, "author_id")
 	_note.Title = field.NewString(tableName, "title")
 	_note.Content = field.NewString(tableName, "content")
+	_note.CreatedAt = field.NewTime(tableName, "created_at")
+	_note.UpdatedAt = field.NewTime(tableName, "updated_at")
 
 	_note.fillFieldMap()
 
@@ -41,11 +43,13 @@ func newNote(db *gorm.DB, opts ...gen.DOOption) note {
 type note struct {
 	noteDo noteDo
 
-	ALL      field.Asterisk
-	ID       field.String
-	AuthorID field.String
-	Title    field.String
-	Content  field.String
+	ALL       field.Asterisk
+	ID        field.String
+	AuthorID  field.String
+	Title     field.String
+	Content   field.String
+	CreatedAt field.Time
+	UpdatedAt field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -66,6 +70,8 @@ func (n *note) updateTableName(table string) *note {
 	n.AuthorID = field.NewString(table, "author_id")
 	n.Title = field.NewString(table, "title")
 	n.Content = field.NewString(table, "content")
+	n.CreatedAt = field.NewTime(table, "created_at")
+	n.UpdatedAt = field.NewTime(table, "updated_at")
 
 	n.fillFieldMap()
 
@@ -90,11 +96,13 @@ func (n *note) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *note) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 4)
+	n.fieldMap = make(map[string]field.Expr, 6)
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["author_id"] = n.AuthorID
 	n.fieldMap["title"] = n.Title
 	n.fieldMap["content"] = n.Content
+	n.fieldMap["created_at"] = n.CreatedAt
+	n.fieldMap["updated_at"] = n.UpdatedAt
 }
 
 func (n note) clone(db *gorm.DB) note {

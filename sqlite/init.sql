@@ -11,6 +11,8 @@ CREATE TABLE notes (
     author_id TEXT NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX idx_notes_author_id ON notes(author_id);

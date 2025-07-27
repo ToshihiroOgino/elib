@@ -76,5 +76,5 @@ func SetAuthCookie(c *gin.Context, userID string) {
 		return
 	}
 
-	c.SetCookie("auth_token", token, int(AGE.Seconds()), "/", "", true, true)
+	c.SetCookie(authTokenCookieKey, token, int(AGE.Seconds()), "/", "", true, true)
 }

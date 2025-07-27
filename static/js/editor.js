@@ -1,0 +1,149 @@
+let currentNoteId = '';
+let isModified = false;
+
+// 統計情報を更新
+function updateStats() {
+    const textarea = document.getElementById('note-content');
+    const content = textarea.value;
+
+    // 文字数
+    document.getElementById('char-count').textContent = content.length;
+
+    // 行数
+    const lines = content.split('\n').length;
+    document.getElementById('line-count').textContent = lines;
+    document.getElementById('total-lines').textContent = lines;
+
+    // カーソル位置
+    const cursorPos = textarea.selectionStart;
+    const beforeCursor = content.substring(0, cursorPos);
+    const lineNum = beforeCursor.split('\n').length;
+    const colNum = beforeCursor.split('\n').pop().length + 1;
+    document.getElementById('cursor-position').textContent = lineNum + ':' + colNum;
+
+    // 保存状態
+    isModified = true;
+    document.getElementById('save-status').textContent = '未保存';
+}
+
+// タイトル編集
+function editTitle() {
+    document.getElementById('note-title').classList.add('d-none');
+    document.getElementById('title-input').classList.remove('d-none');
+    document.getElementById('title-input').focus();
+}
+
+function saveTitle() {
+    const input = document.getElementById('title-input');
+    const span = document.getElementById('note-title');
+    span.textContent = input.value;
+    span.classList.remove('d-none');
+    input.classList.add('d-none');
+    saveNote();
+}
+
+// メモ保存
+function saveNote() {
+    const noteId = document.getElementById('note-id').value;
+    const title = document.getElementById('title-input').value;
+    const content = document.getElementById('note-content').value;
+
+    fetch('/note/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            id: noteId,
+            title: title,
+            content: content
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('save-status').textContent = '保存済み';
+                isModified = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('save-status').textContent = '保存エラー';
+        });
+}
+
+// 新規メモ作成
+function createNewNote() {
+    window.location.href = '/note/new';
+}
+
+// メモ削除
+function deleteNote() {
+    if (confirm('このメモを削除しますか？')) {
+        const noteId = document.getElementById('note-id').value;
+        fetch('/note/delete/' + noteId, {
+            method: 'DELETE'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = '/note/new';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('削除に失敗しました');
+            });
+    }
+}
+
+// 共有機能（簡易実装）
+function shareNote() {
+    const noteId = document.getElementById('note-id').value;
+    const shareUrl = window.location.origin + '/note/view/' + noteId;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('共有URLをクリップボードにコピーしました: ' + shareUrl);
+    }).catch(err => {
+        alert('共有URL: ' + shareUrl);
+    });
+}
+
+// ログアウト
+function logout() {
+    document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = '/user/login';
+}
+
+// メモ選択
+function selectNote(noteId) {
+    // if (isModified && !confirm('未保存の変更があります。移動しますか？')) {
+    //     return;
+    // }
+    window.location.href = '/note/' + noteId;
+}
+
+// 初期化
+function initializeEditor(noteId) {
+    currentNoteId = noteId;
+    updateStats();
+
+    // カーソル位置の追跡
+    const textarea = document.getElementById('note-content');
+    textarea.addEventListener('click', updateStats);
+    textarea.addEventListener('keyup', updateStats);
+
+    // 自動保存（5秒ごと）
+    setInterval(() => {
+        if (isModified) {
+            saveNote();
+        }
+    }, 5000);
+}
+
+// DOM読み込み完了時の処理
+document.addEventListener('DOMContentLoaded', function () {
+    // noteIdは外部から設定される想定
+    if (typeof window.noteId !== 'undefined') {
+        initializeEditor(window.noteId);
+    }
+});

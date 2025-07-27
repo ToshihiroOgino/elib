@@ -10,6 +10,57 @@
     font-weight: 500;
 }
 
-.btn-primary, .btn-success {
+.btn-primary,
+.btn-success {
     font-weight: 500;
+}
+
+/* ノートエディター用のスタイル */
+.note-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.note-item:hover {
+    background-color: #f8f9fa;
+}
+
+.note-item.active {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+}
+
+#note-content {
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: calc(100vh - 200px);
+}
+
+#note-content:focus {
+    box-shadow: none;
+    border: none;
+}
+
+.navbar .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.footer-stats {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .col-md-3 {
+        height: auto !important;
+        max-height: 200px;
+    }
+
+    .navbar .btn-outline-light {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .footer-stats {
+        font-size: 0.8rem;
+    }
 }

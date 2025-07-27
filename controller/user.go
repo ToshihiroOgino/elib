@@ -20,99 +20,53 @@ type loginForm struct {
 }
 
 type IUserController interface {
-	// GetRegister(c *gin.Context)
-	// GetLogin(c *gin.Context)
-	GetProfile(c *gin.Context)
-	PostRegister(c *gin.Context)
-	PostLogin(c *gin.Context)
+	getProfile(c *gin.Context)
+	postRegister(c *gin.Context)
+	postLogin(c *gin.Context)
 }
 
 type userController struct {
 	usecase usecase.IUserUsecase
 }
 
-const URL_ROOT = "/user"
-const URL_PROFILE = URL_ROOT + ""
-const URL_LOGIN = URL_ROOT + "/login"
-const URL_REGISTER = URL_ROOT + "/register"
+const _URL_USER_ROOT = "/user"
+const _URL_PROFILE = ""
+const _URL_LOGIN = "/login"
+const _URL_REGISTER = "/register"
 
 func NewUserController(router *gin.Engine) IUserController {
 	instance := &userController{
 		usecase: usecase.NewUserUsecase(),
 	}
-	setupRoute(instance, router)
+	setupUserRoute(instance, router)
 	return instance
 }
 
-func setupRoute(api IUserController, router *gin.Engine) {
-	router.GET(URL_LOGIN, func(c *gin.Context) {
+func setupUserRoute(api IUserController, router *gin.Engine) {
+	userGroup := router.Group(_URL_USER_ROOT)
+	userGroup.GET(_URL_LOGIN, func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", gin.H{
 			"title":        "Login",
-			"register_url": URL_REGISTER,
+			"register_url": _URL_REGISTER,
 		})
 	})
-	router.GET(URL_REGISTER, func(c *gin.Context) {
+	userGroup.GET(_URL_REGISTER, func(c *gin.Context) {
 		c.HTML(http.StatusOK, "register.html", gin.H{
 			"title":     "Register",
-			"login_url": URL_LOGIN,
+			"login_url": _URL_LOGIN,
 		})
 	})
 
-	router.POST(URL_LOGIN, api.PostLogin)
-	router.POST(URL_REGISTER, api.PostRegister)
+	userGroup.POST(_URL_LOGIN, api.postLogin)
+	userGroup.POST(_URL_REGISTER, api.postRegister)
 
-	router.Use(auth.AuthMiddleware())
+	userGroup.Use(auth.AuthMiddleware())
 	{
-		router.GET(URL_PROFILE, api.GetProfile)
+		userGroup.GET(_URL_PROFILE, api.getProfile)
 	}
 }
 
-/* func (u *userController) GetRegister(c *gin.Context) {
-	var req registerForm
-
-	if err := c.ShouldBind(&req); err != nil {
-		c.HTML(http.StatusOK, "register.html", gin.H{"Error": err.Error()})
-		return
-	}
-
-	user, err := u.usecase.Create(req.Email, req.Password)
-	if err != nil {
-		slog.Error("failed to create user", "error", err)
-		c.HTML(http.StatusOK, "register.html", gin.H{"Error": "登録に失敗しました"})
-		return
-	}
-
-	token, err := auth.GenerateToken(*user.ID)
-	if err != nil {
-		slog.Error("failed to generate token", "error", err)
-		c.HTML(http.StatusOK, "register.html", gin.H{"Error": "トークン生成に失敗しました"})
-		return
-	}
-
-	c.SetCookie("auth_token", token, 3600, "/", "", false, true)
-	c.Redirect(http.StatusSeeOther, "/")
-}
-func (u *userController) GetLogin(c *gin.Context) {
-	var req loginForm
-	if err := c.ShouldBind(&req); err != nil {
-		c.HTML(http.StatusOK, "login.html", gin.H{"Error": err.Error()})
-		return
-	}
-
-	isOk, err := u.usecase.Validate(req.Email, req.Password)
-	if !isOk {
-		slog.Error("validation failed", "email", req.Email, "error", err)
-		c.HTML(http.StatusOK, "login.html", gin.H{"Error": "メールアドレスまたはパスワードが正しくありません"})
-		return
-	} else if err != nil {
-		slog.Error("validation error", "email", req.Email, "error", err)
-		c.HTML(http.StatusOK, "login.html", gin.H{"Error": "内部サーバーエラーが発生しました"})
-		return
-	}
-	c.Redirect(http.StatusSeeOther, "/")
-} */
-
-func (u *userController) GetProfile(c *gin.Context) {
+func (u *userController) getProfile(c *gin.Context) {
 	user := auth.GetUser(c)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -121,7 +75,7 @@ func (u *userController) GetProfile(c *gin.Context) {
 	})
 }
 
-func (u *userController) PostRegister(c *gin.Context) {
+func (u *userController) postRegister(c *gin.Context) {
 	var form registerForm
 	if err := c.ShouldBind(&form); err != nil {
 		slog.Error("failed to bind register form", "error", err)
@@ -137,10 +91,10 @@ func (u *userController) PostRegister(c *gin.Context) {
 	}
 
 	auth.SetAuthCookie(c, user.ID)
-	c.Redirect(http.StatusSeeOther, URL_PROFILE)
+	c.Redirect(http.StatusSeeOther, "/note")
 }
 
-func (u *userController) PostLogin(c *gin.Context) {
+func (u *userController) postLogin(c *gin.Context) {
 	var form loginForm
 	if err := c.ShouldBind(&form); err != nil {
 		slog.Error("failed to bind login form", "error", err)
@@ -167,5 +121,5 @@ func (u *userController) PostLogin(c *gin.Context) {
 	}
 
 	auth.SetAuthCookie(c, user.ID)
-	c.Redirect(http.StatusSeeOther, URL_PROFILE)
+	c.Redirect(http.StatusSeeOther, "/note")
 }

@@ -1,0 +1,87 @@
+{{template "header" .}}
+
+<body>
+    <div class="container-fluid p-0">
+        <!-- ヘッダー -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-light me-2" onclick="createNewNote()">新規</button>
+                    <button class="btn btn-outline-light me-2" onclick="saveNote()">保存</button>
+                    <button class="btn btn-outline-light me-2" onclick="deleteNote()">削除</button>
+                    <button class="btn btn-outline-light me-2" onclick="shareNote()">共有</button>
+                    <button class="btn btn-outline-light me-2" onclick="logout()">ログアウト</button>
+                </div>
+                <div class="flex-grow-1 text-center">
+                    <h5 class="mb-0 text-white" onclick="editTitle()" style="cursor: pointer;">
+                        <span id="note-title">{{.note.Title}}</span>
+                        <input type="text" id="title-input" value="{{.note.Title}}" class="form-control d-none"
+                            onblur="saveTitle()" onkeypress="if(event.key==='Enter') saveTitle()">
+                    </h5>
+                </div>
+                <div class="text-white">
+                    行数: <span id="line-count">1</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="row g-0">
+            <!-- サイドバー -->
+            <div class="col-md-3 bg-light border-end" style="height: calc(100vh - 56px); overflow-y: auto;">
+                <div class="p-3">
+                    <h6>メモ一覧</h6>
+                    <div id="notes-list">
+                        {{range .notes}}
+                        <div class="card mb-2 note-item" data-note-id="{{.ID}}" onclick="selectNote('{{.ID}}')">
+                            <div class="card-body p-2">
+                                <h6 class="card-title mb-1" style="font-size: 0.9rem;">{{.Title}}</h6>
+                                <small class="text-muted">{{.UpdatedAt.Format "2006/01/02 15:04"}}</small>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- メインコンテンツ -->
+            <div class="col-md-9">
+                <div class="p-3" style="height: calc(100vh - 56px - 40px); overflow-y: auto;">
+                    <form id="note-form">
+                        <input type="hidden" id="note-id" value="{{.note.ID}}">
+                        <textarea id="note-content" class="form-control" rows="30"
+                            style="resize: none; border: none; outline: none; font-family: monospace; line-height: 1.5;"
+                            placeholder="ここにメモを入力してください..." oninput="updateStats()">{{.note.Content}}</textarea>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- フッター -->
+        <div class="bg-secondary text-white p-2 fixed-bottom">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3">
+                        カーソル位置: <span id="cursor-position">1:1</span>
+                    </div>
+                    <div class="col-md-3">
+                        文字数: <span id="char-count">0</span>
+                    </div>
+                    <div class="col-md-3">
+                        行数: <span id="total-lines">1</span>
+                    </div>
+                    <div class="col-md-3">
+                        保存状態: <span id="save-status">保存済み</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // noteIdをグローバル変数として設定
+        window.noteId = '{{.note.ID}}';
+    </script>
+    <script src="/static/js/editor.js"></script>
+</body>
+
+{{template "footer"}}

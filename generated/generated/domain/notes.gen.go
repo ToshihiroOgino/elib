@@ -4,14 +4,20 @@
 
 package domain
 
+import (
+	"time"
+)
+
 const TableNameNote = "notes"
 
 // Note mapped from table <notes>
 type Note struct {
-	ID       string `gorm:"column:id;primaryKey" json:"id"`
-	AuthorID string `gorm:"column:author_id;not null" json:"author_id"`
-	Title    string `gorm:"column:title;not null" json:"title"`
-	Content  string `gorm:"column:content;not null" json:"content"`
+	ID        string     `gorm:"column:id;primaryKey" json:"id"`
+	AuthorID  string     `gorm:"column:author_id;not null" json:"author_id"`
+	Title     string     `gorm:"column:title;not null" json:"title"`
+	Content   string     `gorm:"column:content;not null" json:"content"`
+	CreatedAt *time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 // TableName Note's table name

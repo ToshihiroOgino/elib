@@ -17,8 +17,8 @@ func authFailed(c *gin.Context, reason string) {
 	c.Abort()
 }
 
-const authTokenCookie = "auth_token"
-const userCookie = "user"
+const authTokenCookieKey = "auth_token"
+const userKey = "user"
 
 func parseBearerToken(bearerToken string) (string, error) {
 	parts := strings.Split(bearerToken, " ")
@@ -30,7 +30,7 @@ func parseBearerToken(bearerToken string) (string, error) {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		bearerToken, err := c.Cookie(authTokenCookie)
+		bearerToken, err := c.Cookie(authTokenCookieKey)
 		if err != nil {
 			authFailed(c, err.Error())
 			return
@@ -56,13 +56,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		slog.Info("user authenticated", "user_id", user.ID, "email", user.Email)
-		c.Set(userCookie, user)
+		c.Set(userKey, user)
 		c.Next()
 	}
 }
 
 func GetUser(c *gin.Context) *domain.User {
-	user, exists := c.Get(userCookie)
+	user, exists := c.Get(userKey)
 	if !exists {
 		return nil
 	}
