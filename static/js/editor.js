@@ -1,25 +1,66 @@
 let currentNoteId = "";
 let isModified = false;
 
-// 統計情報を更新
+// 保存状態を動的に更新
+function updateSaveStatus(status) {
+  const saveStatusElement = document.getElementById("save-status");
+  const saveStatusContainer = saveStatusElement.parentElement;
+
+  switch (status) {
+    case "saved":
+      saveStatusElement.textContent = "保存済み";
+      break;
+    case "unsaved":
+      saveStatusElement.textContent = "未保存";
+      break;
+    case "saving":
+      saveStatusElement.textContent = "保存中...";
+      // 保存中のアニメーション効果
+      saveStatusElement.style.animation = "pulse 1s infinite";
+      break;
+    case "error":
+      saveStatusElement.textContent = "保存エラー";
+      break;
+    default:
+      saveStatusElement.textContent = "保存済み";
+  }
+
+  // アニメーションをリセット（保存中以外）
+  if (status !== "saving") {
+    saveStatusElement.style.animation = "";
+  }
+}
+
 function updateStats() {
   const textarea = document.getElementById("note-content");
   const content = textarea.value;
 
-  document.getElementById("char-count").textContent = content.length;
+  // 文字数を更新（選択範囲考慮）
+  updateSelectionInfo();
 
+  // 行数を更新
   const lines = content.split("\n").length;
-  document.getElementById("line-count").textContent = lines;
-  document.getElementById("total-lines").textContent = lines;
+  document.getElementById("total-lines").innerHTML = lines;
 
+  // カーソル位置を更新
+  updateCursorPosition();
+
+  // 保存状態を更新
+  if (!isModified) {
+    isModified = true;
+    updateSaveStatus("unsaved");
+  }
+}
+
+// カーソル位置を更新
+function updateCursorPosition() {
+  const textarea = document.getElementById("note-content");
+  const content = textarea.value;
   const cursorPos = textarea.selectionStart;
   const beforeCursor = content.substring(0, cursorPos);
   const lineNum = beforeCursor.split("\n").length;
   const colNum = beforeCursor.split("\n").pop().length + 1;
-  document.getElementById("cursor-position").textContent = lineNum + ":" + colNum;
-
-  isModified = true;
-  document.getElementById("save-status").textContent = "未保存";
+  document.getElementById("cursor-position").innerHTML = lineNum + ":" + colNum;
 }
 
 function editTitle() {
@@ -31,7 +72,7 @@ function editTitle() {
 function saveTitle() {
   const input = document.getElementById("title-input");
   const span = document.getElementById("note-title");
-  span.textContent = input.value;
+  span.innerHTML = input.value;
   span.classList.remove("d-none");
   input.classList.add("d-none");
   saveNote();
@@ -41,6 +82,9 @@ function saveNote() {
   const noteId = document.getElementById("note-id").value;
   const title = document.getElementById("title-input").value;
   const content = document.getElementById("note-content").value;
+
+  // 保存中状態を表示
+  updateSaveStatus("saving");
 
   fetch("/note/save", {
     method: "POST",
@@ -56,15 +100,15 @@ function saveNote() {
     .then((response) => response.json())
     .then((data) => {
       if (data.status === "success") {
-        document.getElementById("save-status").textContent = "保存済み";
+        updateSaveStatus("saved");
         isModified = false;
       } else {
-        document.getElementById("save-status").textContent = "保存エラー";
+        updateSaveStatus("error");
       }
     })
     .catch((error) => {
       console.error("Error:", error);
-      document.getElementById("save-status").textContent = "保存エラー";
+      updateSaveStatus("error");
     });
 }
 
@@ -168,12 +212,32 @@ function shareNote(editable) {
 
 function initializeEditor(noteId) {
   currentNoteId = noteId;
-  updateStats();
 
-  // カーソル位置の追跡
+  updateStats();
+  updateSaveStatus("saved");
+
+  // テキストエリアの参照を取得
   const textarea = document.getElementById("note-content");
-  textarea.addEventListener("click", updateStats);
-  textarea.addEventListener("keyup", updateStats);
+
+  // 様々なイベントでカーソル位置と統計情報を更新
+  textarea.addEventListener("click", updateCursorPosition);
+  textarea.addEventListener("keyup", updateCursorPosition);
+  textarea.addEventListener("keydown", updateCursorPosition);
+  textarea.addEventListener("mouseup", updateCursorPosition);
+  textarea.addEventListener("focus", updateCursorPosition);
+  textarea.addEventListener("select", updateCursorPosition);
+
+  // 選択範囲変更時の更新
+  textarea.addEventListener("selectionchange", updateSelectionInfo);
+  textarea.addEventListener("mouseup", updateSelectionInfo);
+  textarea.addEventListener("keyup", updateSelectionInfo);
+
+  textarea.addEventListener("input", updateStats);
+  textarea.addEventListener("change", updateStats);
+  textarea.addEventListener("paste", () => {
+    // paste後に統計情報を更新するため少し遅延
+    setTimeout(updateStats, 10);
+  });
 
   // 自動保存（5秒ごと）
   setInterval(() => {
@@ -181,6 +245,14 @@ function initializeEditor(noteId) {
       saveNote();
     }
   }, 5000);
+
+  // キーボードショートカット（Ctrl+S で保存）
+  textarea.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.key === "s") {
+      event.preventDefault();
+      saveNote();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -268,7 +340,7 @@ function showToast(message) {
   const toast = document.createElement("div");
   toast.className = "alert alert-info position-fixed";
   toast.style.cssText = "top: 20px; right: 20px; z-index: 9999; max-width: 300px;";
-  toast.textContent = message;
+  toast.innerHTML = message;
 
   document.body.appendChild(toast);
 
@@ -306,10 +378,10 @@ function addShareToList(shareId, editable) {
   const typeSpan = document.createElement("small");
   if (editable) {
     typeSpan.className = "text-success";
-    typeSpan.textContent = "編集可";
+    typeSpan.innerHTML = "編集可";
   } else {
     typeSpan.className = "text-info";
-    typeSpan.textContent = "閲覧のみ";
+    typeSpan.innerHTML = "閲覧のみ";
   }
 
   shareInfo.appendChild(numberSpan);
@@ -350,7 +422,7 @@ function updateShareNumbers() {
   shareItems.forEach((item, index) => {
     const numberSpan = item.querySelector(".share-number");
     if (numberSpan) {
-      numberSpan.textContent = index + 1;
+      numberSpan.innerHTML = index + 1;
     }
   });
 }
@@ -376,5 +448,42 @@ function removeShareFromList(shareId) {
     noSharesMessage.className = "text-muted small";
     noSharesMessage.textContent = "共有リンクはありません";
     sharesList.appendChild(noSharesMessage);
+  }
+}
+
+// フッター情報の追加ユーティリティ関数
+function getDetailedStats() {
+  const textarea = document.getElementById("note-content");
+  const content = textarea.value;
+
+  const stats = {
+    characters: content.length,
+    charactersNoSpaces: content.replace(/\s/g, "").length,
+    words: content.trim() ? content.trim().split(/\s+/).length : 0,
+    lines: content.split("\n").length,
+    paragraphs: content.split(/\n\s*\n/).filter((p) => p.trim()).length,
+  };
+
+  return stats;
+}
+
+// 選択範囲の情報を更新
+function updateSelectionInfo() {
+  const textarea = document.getElementById("note-content");
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  if (start !== end) {
+    const selectedText = textarea.value.substring(start, end);
+    const selectedLength = selectedText.length;
+    const selectedWords = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
+
+    // 選択情報を表示（例：フッターの文字数部分に追加表示）
+    const charCountElement = document.getElementById("char-count");
+    charCountElement.textContent = `${textarea.value.length} (選択: ${selectedLength})`;
+  } else {
+    // 選択なしの場合は通常表示
+    const charCountElement = document.getElementById("char-count");
+    charCountElement.textContent = textarea.value.length;
   }
 }

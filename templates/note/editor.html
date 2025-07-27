@@ -1,5 +1,30 @@
 {{template "header" .}}
 
+<style>
+  /* フッター用のアニメーション */
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* フッター情報のスタイル改善 */
+  .footer-info {
+    transition: color 0.3s ease;
+  }
+
+  /* 保存状態の視覚的改善 */
+  .save-status-container {
+    font-weight: 500;
+  }
+</style>
+
 <body>
   <div class="container-fluid p-0">
     <!-- ヘッダー -->
@@ -144,10 +169,10 @@
     <div class="bg-secondary text-white p-2 fixed-bottom">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-md-3">カーソル位置: <span id="cursor-position">1:1</span></div>
-          <div class="col-md-3">文字数: <span id="char-count">0</span></div>
-          <div class="col-md-3">行数: <span id="total-lines">1</span></div>
-          <div class="col-md-3">保存状態: <span id="save-status">保存済み</span></div>
+          <div class="col-md-3 footer-info">カーソル位置: <span id="cursor-position">1:1</span></div>
+          <div class="col-md-3 footer-info">文字数: <span id="char-count">0</span></div>
+          <div class="col-md-3 footer-info">行数: <span id="total-lines">1</span></div>
+          <div class="col-md-3 footer-info save-status-container">保存状態: <span id="save-status">保存済み</span></div>
         </div>
       </div>
     </div>
