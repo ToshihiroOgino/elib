@@ -82,7 +82,7 @@ function deleteNote() {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
-          window.location.href = "/note/new";
+          window.location.href = "/note";
         } else {
           alert("削除に失敗しました");
         }

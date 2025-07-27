@@ -5,42 +5,52 @@
     <!-- ヘッダー -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
       <div class="container-fluid">
-        <div class="d-flex align-items-center">
-          <div class="flex-grow-1 me-2">
-            <h3
-              class="mb-0 text-white"
-              onclick="editTitle()"
-              style="
-                cursor: pointer;
-                font-size: 1.75rem;
-                font-weight: 500;
-                background-color: rgba(255, 255, 255, 0.3);
-                padding: 8px 16px;
-                border-radius: 8px;
-              "
-            >
-              <span id="note-title">{{.note.Title | escapeHTML}}</span>
-              <input
-                type="text"
-                id="title-input"
-                value="{{.note.Title | escapeHTML}}"
-                class="form-control d-none"
-                style="font-size: 1.75rem; font-weight: 500"
-                onblur="saveTitle()"
-                onkeypress="if(event.key==='Enter') saveTitle()"
-              />
-            </h3>
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1 me-2">
+              <h3
+                class="mb-0 text-white"
+                onclick="editTitle()"
+                style="
+                  cursor: pointer;
+                  font-size: 1.75rem;
+                  font-weight: 500;
+                  background-color: rgba(255, 255, 255, 0.3);
+                  padding: 8px 16px;
+                  border-radius: 8px;
+                "
+              >
+                <span id="note-title">{{.note.Title | escapeHTML}}</span>
+                <input
+                  type="text"
+                  id="title-input"
+                  value="{{.note.Title | escapeHTML}}"
+                  class="form-control d-none"
+                  style="font-size: 1.75rem; font-weight: 500"
+                  onblur="saveTitle()"
+                  onkeypress="if(event.key==='Enter') saveTitle()"
+                />
+              </h3>
+            </div>
+            <button class="btn btn-outline-light me-2" onclick="createNewNote()">新規</button>
+            <button class="btn btn-outline-light me-2" onclick="saveNote()">保存</button>
+            <button class="btn btn-outline-light me-2" onclick="deleteNote()">削除</button>
+            <button class="btn btn-outline-light me-2" onclick="shareReadonly()">共有(閲覧のみ)</button>
+            <button class="btn btn-outline-light me-2" onclick="shareEditable()">共有(編集可)</button>
           </div>
-          <button class="btn btn-outline-light me-2" onclick="createNewNote()">新規</button>
-          <button class="btn btn-outline-light me-2" onclick="saveNote()">保存</button>
-          <button class="btn btn-outline-light me-2" onclick="deleteNote()">削除</button>
-          <button class="btn btn-outline-light me-2" onclick="shareReadonly()">共有(閲覧のみ)</button>
-          <button class="btn btn-outline-light me-2" onclick="shareEditable()">共有(編集可)</button>
-          <form action="/user/logout" method="POST" class="d-inline">
-            <button type="submit" class="btn btn-outline-light me-2">ログアウト</button>
-          </form>
+          <div>
+            <form action="/user/logout" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-outline-light">ログアウト</button>
+            </form>
+          </div>
         </div>
-        <div class="text-white">行数: <span id="line-count">1</span></div>
+        <div class="text-white">
+          <small
+            >最終更新:<span data-utc-time='{{.note.UpdatedAt.Format "2006-01-02T15:04:05"}}'
+              >{{.note.UpdatedAt.Format "2006/01/02 15:04"}}</span
+            ></small
+          >
+        </div>
       </div>
     </nav>
 

@@ -5,55 +5,57 @@
     <!-- ヘッダー -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
       <div class="container-fluid">
-        <div class="d-flex align-items-center">
-          <span class="navbar-brand mb-0 h1">
-            {{if .share.Editable}} 共有メモ (編集可) {{else}} 共有メモ (閲覧のみ) {{end}}
-          </span>
-          {{if .share.Editable}}
-          <div class="flex-grow-1 me-2">
-            <h3 class="mb-0 text-white">
-              {{if .share.Editable}}
-              <span
-                id="note-title"
-                onclick="editTitle()"
-                style="
-                  cursor: pointer;
-                  font-size: 1.75rem;
-                  font-weight: 500;
-                  background-color: rgba(255, 255, 255, 0.3);
-                  padding: 8px 16px;
-                  border-radius: 8px;
-                "
-                >{{.note.Title | escapeHTML}}</span
-              >
-              <input
-                type="text"
-                id="title-input"
-                value="{{.note.Title | escapeHTML}}"
-                class="form-control d-none"
-                onblur="saveTitle()"
-                style="font-size: 1.75rem; font-weight: 500"
-                onkeypress="if(event.key==='Enter') saveTitle()"
-              />
-              {{else}}
-              <span>{{.note.Title | escapeHTML}}</span>
-              {{end}}
-            </h3>
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div class="d-flex align-items-center">
+            <span class="navbar-brand mb-0 h1">
+              {{if .share.Editable}} 共有メモ (編集可) {{else}} 共有メモ (閲覧のみ) {{end}}
+            </span>
+            {{if .share.Editable}}
+            <div class="flex-grow-1 me-2">
+              <h3 class="mb-0 text-white">
+                {{if .share.Editable}}
+                <span
+                  id="note-title"
+                  onclick="editTitle()"
+                  style="
+                    cursor: pointer;
+                    font-size: 1.75rem;
+                    font-weight: 500;
+                    background-color: rgba(255, 255, 255, 0.3);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                  "
+                  >{{.note.Title | escapeHTML}}</span
+                >
+                <input
+                  type="text"
+                  id="title-input"
+                  value="{{.note.Title | escapeHTML}}"
+                  class="form-control d-none"
+                  onblur="saveTitle()"
+                  style="font-size: 1.75rem; font-weight: 500"
+                  onkeypress="if(event.key==='Enter') saveTitle()"
+                />
+                {{else}}
+                <span>{{.note.Title | escapeHTML}}</span>
+                {{end}}
+              </h3>
+            </div>
+            <button class="btn btn-outline-light me-2" onclick="saveSharedNote()">保存</button>
+            {{end}}
+            <button class="btn btn-outline-light me-2" onclick="copyCurrentUrl()">リンクをコピー</button>
           </div>
-          <button class="btn btn-outline-light me-2" onclick="saveSharedNote()">保存</button>
-          {{end}}
-          <button class="btn btn-outline-light me-2" onclick="copyCurrentUrl()">リンクをコピー</button>
+          <div>
+            <a href="/note" class="btn btn-outline-light">メモ一覧へ</a>
+          </div>
         </div>
         <div class="text-white">
-          {{if .share.Editable}} 行数: <span id="line-count">1</span>
-          {{else}}
           <small
             >最終更新:
             <span data-utc-time='{{.note.UpdatedAt.Format "2006-01-02T15:04:05"}}'
               >{{.note.UpdatedAt.Format "2006/01/02 15:04"}}</span
             ></small
           >
-          {{end}}
         </div>
       </div>
     </nav>
