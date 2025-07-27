@@ -43,8 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener("beforeunload", function (e) {
       if (isUnsaved) {
         e.preventDefault();
-        e.returnValue =
-          "保存されていない変更があります。本当にページを離れますか？";
+        e.returnValue = "保存されていない変更があります。本当にページを離れますか？";
         return e.returnValue;
       }
     });
@@ -74,8 +73,7 @@ function updateCursorPosition() {
   const beforeCursor = content.substring(0, cursorPos);
   const lineNum = beforeCursor.split("\n").length;
   const colNum = beforeCursor.split("\n").pop().length + 1;
-  document.getElementById("cursor-position").textContent =
-    lineNum + ":" + colNum;
+  document.getElementById("cursor-position").textContent = lineNum + ":" + colNum;
 }
 
 function markUnsaved() {
