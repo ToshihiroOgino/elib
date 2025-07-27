@@ -16,8 +16,7 @@ function updateStats() {
   const beforeCursor = content.substring(0, cursorPos);
   const lineNum = beforeCursor.split("\n").length;
   const colNum = beforeCursor.split("\n").pop().length + 1;
-  document.getElementById("cursor-position").textContent =
-    lineNum + ":" + colNum;
+  document.getElementById("cursor-position").textContent = lineNum + ":" + colNum;
 
   isModified = true;
   document.getElementById("save-status").textContent = "未保存";
@@ -76,7 +75,7 @@ function createNewNote() {
 function deleteNote() {
   if (confirm("このメモを削除しますか？")) {
     const noteId = document.getElementById("note-id").value;
-    
+
     fetch("/note/delete/" + encodeURIComponent(noteId), {
       method: "DELETE",
     })
@@ -148,15 +147,11 @@ function shareNote(editable) {
           navigator.clipboard
             .writeText(shareUrl)
             .then(() => {
-              showToast(
-                `共有リンク（${shareType}）を作成し、クリップボードにコピーしました`
-              );
+              showToast(`共有リンク（${shareType}）を作成し、クリップボードにコピーしました`);
             })
             .catch((err) => {
               console.error("Failed to copy: ", err);
-              showToast(
-                `共有リンク（${shareType}）を作成しました: ${shareUrl}`
-              );
+              showToast(`共有リンク（${shareType}）を作成しました: ${shareUrl}`);
             });
         } else {
           showToast(`共有リンク（${shareType}）を作成しました: ${shareUrl}`);
@@ -272,8 +267,7 @@ function showToast(message) {
   // 簡単なトースト表示（Bootstrap使用時はBootstrapのToast使用可能）
   const toast = document.createElement("div");
   toast.className = "alert alert-info position-fixed";
-  toast.style.cssText =
-    "top: 20px; right: 20px; z-index: 9999; max-width: 300px;";
+  toast.style.cssText = "top: 20px; right: 20px; z-index: 9999; max-width: 300px;";
   toast.textContent = message;
 
   document.body.appendChild(toast);

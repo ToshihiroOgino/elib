@@ -31,25 +31,13 @@
               />
             </h3>
           </div>
-          <button class="btn btn-outline-light me-2" onclick="createNewNote()">
-            新規
-          </button>
-          <button class="btn btn-outline-light me-2" onclick="saveNote()">
-            保存
-          </button>
-          <button class="btn btn-outline-light me-2" onclick="deleteNote()">
-            削除
-          </button>
-          <button class="btn btn-outline-light me-2" onclick="shareReadonly()">
-            共有(閲覧のみ)
-          </button>
-          <button class="btn btn-outline-light me-2" onclick="shareEditable()">
-            共有(編集可)
-          </button>
+          <button class="btn btn-outline-light me-2" onclick="createNewNote()">新規</button>
+          <button class="btn btn-outline-light me-2" onclick="saveNote()">保存</button>
+          <button class="btn btn-outline-light me-2" onclick="deleteNote()">削除</button>
+          <button class="btn btn-outline-light me-2" onclick="shareReadonly()">共有(閲覧のみ)</button>
+          <button class="btn btn-outline-light me-2" onclick="shareEditable()">共有(編集可)</button>
           <form action="/user/logout" method="POST" class="d-inline">
-            <button type="submit" class="btn btn-outline-light me-2">
-              ログアウト
-            </button>
+            <button type="submit" class="btn btn-outline-light me-2">ログアウト</button>
           </form>
         </div>
         <div class="text-white">行数: <span id="line-count">1</span></div>
@@ -58,18 +46,11 @@
 
     <div class="row g-0">
       <!-- サイドバー -->
-      <div
-        class="col-md-3 bg-light border-end d-flex flex-column"
-        style="height: calc(100vh - 56px)"
-      >
+      <div class="col-md-3 bg-light border-end d-flex flex-column" style="height: calc(100vh - 56px)">
         <!-- メモ一覧セクション -->
         <div class="p-3 flex-grow-1 d-flex flex-column" style="min-height: 0">
           <h6 class="mb-3">メモ一覧</h6>
-          <div
-            id="notes-list"
-            class="flex-grow-1"
-            style="overflow-y: auto; min-height: 200px"
-          >
+          <div id="notes-list" class="flex-grow-1" style="overflow-y: auto; min-height: 200px">
             {{range .notes}}
             <div
               class="card mb-2 note-item"
@@ -77,12 +58,8 @@
               onclick="selectNote('{{.ID | safeJSON}}')"
             >
               <div class="card-body p-2">
-                <h6 class="card-title mb-1" style="font-size: 0.9rem">
-                  {{.Title | escapeHTML}}
-                </h6>
-                <small
-                  class="text-muted"
-                  data-utc-time='{{.UpdatedAt.Format "2006-01-02T15:04:05"}}'
+                <h6 class="card-title mb-1" style="font-size: 0.9rem">{{.Title | escapeHTML}}</h6>
+                <small class="text-muted" data-utc-time='{{.UpdatedAt.Format "2006-01-02T15:04:05"}}'
                   >{{.UpdatedAt.Format "2006/01/02 15:04"}}</small
                 >
               </div>
@@ -92,10 +69,7 @@
         </div>
 
         <!-- シェアリストセクション -->
-        <div
-          class="border-top p-3 d-flex flex-column"
-          style="height: 40%; min-height: 150px"
-        >
+        <div class="border-top p-3 d-flex flex-column" style="height: 40%; min-height: 150px">
           <h6 class="mb-3">共有リンク</h6>
           <div id="shares-list" class="flex-grow-1" style="overflow-y: auto">
             {{range $index, $share := .shares}}
@@ -138,26 +112,19 @@
 
       <!-- メインコンテンツ -->
       <div class="col-md-9">
-        <div
-          class="p-3"
-          style="height: calc(100vh - 56px - 40px); overflow-y: auto"
-        >
+        <div class="p-3" style="height: calc(100vh - 56px - 40px); overflow-y: auto">
           <form id="note-form">
             <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
             <textarea
               id="note-content"
               class="form-control"
               rows="30"
-              style="
-                resize: none;
-                border: none;
-                outline: none;
-                font-family: monospace;
-                line-height: 1.5;
-              "
+              style="resize: none; border: none; outline: none; font-family: monospace; line-height: 1.5"
               placeholder="ここにメモを入力してください..."
               oninput="updateStats()"
-            >{{.note.Content | escapeHTML}}</textarea>
+            >
+{{.note.Content | escapeHTML}}</textarea
+            >
           </form>
         </div>
       </div>
@@ -167,14 +134,10 @@
     <div class="bg-secondary text-white p-2 fixed-bottom">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-md-3">
-            カーソル位置: <span id="cursor-position">1:1</span>
-          </div>
+          <div class="col-md-3">カーソル位置: <span id="cursor-position">1:1</span></div>
           <div class="col-md-3">文字数: <span id="char-count">0</span></div>
           <div class="col-md-3">行数: <span id="total-lines">1</span></div>
-          <div class="col-md-3">
-            保存状態: <span id="save-status">保存済み</span>
-          </div>
+          <div class="col-md-3">保存状態: <span id="save-status">保存済み</span></div>
         </div>
       </div>
     </div>

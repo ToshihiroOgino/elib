@@ -22,10 +22,7 @@ function formatToJST(utcDateString, prefix = "") {
       hour12: false,
     };
 
-    const jstTime = utcDate
-      .toLocaleString("ja-JP", jstOptions)
-      .replace(/\//g, "/")
-      .replace(",", "");
+    const jstTime = utcDate.toLocaleString("ja-JP", jstOptions).replace(/\//g, "/").replace(",", "");
     return prefix ? prefix + jstTime : jstTime;
   } catch (error) {
     console.error("日時変換エラー:", error);
