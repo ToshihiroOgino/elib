@@ -19,7 +19,8 @@ type INoteController interface {
 }
 
 type noteController struct {
-	usecase usecase.INoteUsecase
+	noteUsecase  usecase.INoteUsecase
+	shareUsecase usecase.IShareUsecase
 }
 
 type saveNoteRequest struct {
@@ -30,7 +31,8 @@ type saveNoteRequest struct {
 
 func NewNoteController(router *gin.Engine) INoteController {
 	instance := &noteController{
-		usecase: usecase.NewNoteUsecase(),
+		noteUsecase:  usecase.NewNoteUsecase(),
+		shareUsecase: usecase.NewShareUsecase(),
 	}
 	setupNoteRoute(instance, router)
 	return instance
@@ -52,7 +54,7 @@ func (n *noteController) getNote(c *gin.Context) {
 	user := auth.GetSessionUser(c)
 
 	// ユーザーの全メモを取得
-	notes, err := n.usecase.FindNotesByUserID(user.ID)
+	notes, err := n.noteUsecase.FindNotesByUserID(user.ID)
 	if err != nil {
 		slog.Error("failed to get notes", "error", err)
 		notes = []*domain.Note{}
@@ -63,7 +65,7 @@ func (n *noteController) getNote(c *gin.Context) {
 	if len(notes) > 0 {
 		currentNote = notes[0]
 	} else {
-		newNote, err := n.usecase.CreateNote(user)
+		newNote, err := n.noteUsecase.CreateNote(user)
 		if err != nil {
 			slog.Error("failed to save new note", "error", err)
 		} else {
@@ -72,10 +74,19 @@ func (n *noteController) getNote(c *gin.Context) {
 		}
 	}
 
+	var shares []*domain.SharingInfo
+	if shareInfoArr, err := n.shareUsecase.FindByNote(currentNote); err == nil {
+		shares = shareInfoArr
+	} else {
+		shares = []*domain.SharingInfo{}
+		slog.Error("failed to get share info for note", "noteId", currentNote.ID, "error", err)
+	}
+
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title": "メモエディター",
-		"note":  currentNote,
-		"notes": notes,
+		"title":  "メモエディター",
+		"note":   currentNote,
+		"notes":  notes,
+		"shares": shares,
 	})
 }
 
@@ -83,7 +94,7 @@ func (n *noteController) getNoteById(c *gin.Context) {
 	user := auth.GetSessionUser(c)
 	noteId := c.Param("id")
 
-	note, err := n.usecase.Find(noteId)
+	note, err := n.noteUsecase.Find(noteId)
 	if err != nil {
 		slog.Error("failed to get note", "noteId", noteId, "error", err)
 		c.Redirect(http.StatusSeeOther, "/note")
@@ -96,16 +107,25 @@ func (n *noteController) getNoteById(c *gin.Context) {
 	}
 
 	// ユーザーの全メモを取得
-	notes, err := n.usecase.FindNotesByUserID(user.ID)
+	notes, err := n.noteUsecase.FindNotesByUserID(user.ID)
 	if err != nil {
 		slog.Error("failed to get notes", "error", err)
 		notes = []*domain.Note{}
 	}
 
+	var shares []*domain.SharingInfo
+	if shareInfoArr, err := n.shareUsecase.FindByNote(note); err == nil {
+		shares = shareInfoArr
+	} else {
+		shares = []*domain.SharingInfo{}
+		slog.Error("failed to get share info for note", "noteId", note.ID, "error", err)
+	}
+
 	c.HTML(http.StatusOK, "editor.html", gin.H{
-		"title": "メモエディター",
-		"note":  note,
-		"notes": notes,
+		"title":  "メモエディター",
+		"note":   note,
+		"notes":  notes,
+		"shares": shares,
 	})
 }
 
@@ -113,7 +133,7 @@ func (n *noteController) getCreateNewNote(c *gin.Context) {
 	user := auth.GetSessionUser(c)
 
 	// 新規メモを作成
-	newNote, err := n.usecase.CreateNote(user)
+	newNote, err := n.noteUsecase.CreateNote(user)
 	if err != nil {
 		slog.Error("failed to create new note", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create note"})
@@ -134,7 +154,7 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 	}
 
 	// メモを取得して権限チェック
-	note, err := n.usecase.Find(req.ID)
+	note, err := n.noteUsecase.Find(req.ID)
 	if err != nil {
 		slog.Error("failed to get note for saving", "noteId", req.ID, "error", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "note not found"})
@@ -150,7 +170,7 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 	note.Title = req.Title
 	note.Content = req.Content
 
-	_, err = n.usecase.UpdateNote(note)
+	_, err = n.noteUsecase.UpdateNote(note)
 	if err != nil {
 		slog.Error("failed to update note", "noteId", req.ID, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save note"})
@@ -165,7 +185,7 @@ func (n *noteController) deleteNote(c *gin.Context) {
 	noteId := c.Param("id")
 
 	// メモを取得して権限チェック
-	note, err := n.usecase.Find(noteId)
+	note, err := n.noteUsecase.Find(noteId)
 	if err != nil {
 		slog.Error("failed to get note for deletion", "noteId", noteId, "error", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "note not found"})
@@ -178,7 +198,7 @@ func (n *noteController) deleteNote(c *gin.Context) {
 	}
 
 	// メモを削除
-	err = n.usecase.Delete(note)
+	err = n.noteUsecase.Delete(note)
 	if err != nil {
 		slog.Error("failed to delete note", "noteId", noteId, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete note"})

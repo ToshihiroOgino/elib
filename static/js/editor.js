@@ -89,20 +89,7 @@ function deleteNote() {
     }
 }
 
-function shareNote() {
-    const noteId = document.getElementById('note-id').value;
-    const shareUrl = window.location.origin + '/note/view/' + noteId;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        alert('共有URLをクリップボードにコピーしました: ' + shareUrl);
-    }).catch(err => {
-        alert('共有URL: ' + shareUrl);
-    });
-}
-
 function selectNote(noteId) {
-    // if (isModified && !confirm('未保存の変更があります。移動しますか？')) {
-    //     return;
-    // }
     window.location.href = '/note/' + noteId;
 }
 
@@ -128,4 +115,90 @@ document.addEventListener('DOMContentLoaded', function () {
     if (typeof window.noteId !== 'undefined') {
         initializeEditor(window.noteId);
     }
+    
+    // シェア番号を設定
+    initializeShareNumbers();
 });
+
+// シェア番号を初期化
+function initializeShareNumbers() {
+    const shareItems = document.querySelectorAll('.share-item');
+    shareItems.forEach((item, index) => {
+        const numberSpan = item.querySelector('.share-number');
+        if (numberSpan) {
+            numberSpan.textContent = index + 1;
+        }
+    });
+}
+
+// 共有リンクをコピー
+function copyShareLink(shareId) {
+    const shareUrl = window.location.origin + '/share/' + shareId;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showToast('共有リンクをコピーしました');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            fallbackCopyToClipboard(shareUrl);
+        });
+    } else {
+        fallbackCopyToClipboard(shareUrl);
+    }
+}
+
+// フォールバック用のコピー関数
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        showToast('共有リンクをコピーしました');
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+        showToast('コピーに失敗しました');
+    }
+    document.body.removeChild(textArea);
+}
+
+// 共有を削除
+function deleteShare(shareId) {
+    if (confirm('この共有リンクを削除しますか？')) {
+        fetch('/share/' + shareId, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                showToast('共有リンクを削除しました');
+                // ページをリロードして共有リストを更新
+                window.location.reload();
+            } else {
+                showToast('削除に失敗しました');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('削除に失敗しました');
+        });
+    }
+}
+
+// トースト通知を表示
+function showToast(message) {
+    // 簡単なトースト表示（Bootstrap使用時はBootstrapのToast使用可能）
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-info position-fixed';
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
