@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/hex"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,6 +53,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 			var err error
 			expectedToken, err = GetCookieSecure(c, CSRFTokenCookieKey)
 			if err != nil || expectedToken == "" {
+				slog.Error("CSRF token not found in context or cookie", "path", c.Request.URL.Path, "method", c.Request.Method)
 				c.JSON(403, gin.H{"error": "CSRF token required"})
 				c.Abort()
 				return
@@ -66,12 +68,14 @@ func CSRFMiddleware() gin.HandlerFunc {
 		}
 
 		if clientToken == "" {
+			slog.Error("CSRF token missing in request", "path", c.Request.URL.Path, "method", c.Request.Method)
 			c.JSON(403, gin.H{"error": "CSRF token required"})
 			c.Abort()
 			return
 		}
 
 		if !validateCSRFToken(expectedToken, clientToken) {
+			slog.Error("CSRF token validation failed", "expected", expectedToken, "received", clientToken, "path", c.Request.URL.Path, "method", c.Request.Method)
 			c.JSON(403, gin.H{"error": "CSRF token validation failed", "expected": expectedToken, "received": clientToken})
 			c.Abort()
 			return
