@@ -11,6 +11,7 @@ import (
 
 type IShareController interface {
 	getSharedNote(c *gin.Context)
+	postShareNote(c *gin.Context)
 	deleteShare(c *gin.Context)
 }
 
@@ -18,6 +19,11 @@ type shareController struct {
 	shareUsecase usecase.IShareUsecase
 	noteUsecase  usecase.INoteUsecase
 	userUsecase  usecase.IUserUsecase
+}
+
+type shareRequest struct {
+	NoteID   string `json:"noteId"`
+	Editable bool   `json:"editable"`
 }
 
 func NewShareController(router *gin.Engine) IShareController {
@@ -35,6 +41,7 @@ func setupShareRoute(i IShareController, router *gin.Engine) {
 	shareGroup.GET("/:id", i.getSharedNote)
 	shareGroup.Use(auth.AuthMiddleware())
 	{
+		shareGroup.POST("", i.postShareNote)
 		shareGroup.DELETE("/:id", i.deleteShare)
 	}
 }
@@ -67,6 +74,34 @@ func (i *shareController) getSharedNote(c *gin.Context) {
 		"note":     note,
 		"editable": share.Editable,
 	})
+}
+
+func (i *shareController) postShareNote(c *gin.Context) {
+	var req shareRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data."})
+		return
+	}
+
+	note, err := i.noteUsecase.Find(req.NoteID)
+	if err != nil || note == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found."})
+		return
+	}
+
+	user := auth.GetSessionUser(c)
+	if user == nil || user.ID != note.AuthorID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to share this note."})
+		return
+	}
+
+	sharingInfo, err := i.shareUsecase.ShareNote(note, req.Editable)
+	if err != nil {
+		slog.Error("failed to share note", "noteId", note.ID, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to share note."})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"shareId": sharingInfo.ID})
 }
 
 func (i *shareController) deleteShare(c *gin.Context) {
