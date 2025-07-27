@@ -1,6 +1,6 @@
 {{template "header" .}}
 
-<link rel="stylesheet" href="/static/css/shared-note.css">
+<link rel="stylesheet" href="/static/css/shared-note.css" />
 
 <body>
   <div class="container-fluid p-0">
@@ -12,7 +12,6 @@
             <span class="navbar-brand mb-0 h1">
               {{if .share.Editable}} 共有メモ (編集可) {{else}} 共有メモ (閲覧のみ) {{end}}
             </span>
-            {{if .share.Editable}}
             <div class="flex-grow-1 me-2">
               <h3 class="mb-0 text-white">
                 {{if .share.Editable}}
@@ -39,10 +38,20 @@
                   onkeypress="if(event.key==='Enter') saveTitle()"
                 />
                 {{else}}
-                <span>{{.note.Title | escapeHTML}}</span>
+                <span
+                  style="
+                    font-size: 1.75rem;
+                    font-weight: 500;
+                    background-color: rgba(255, 255, 255, 0.3);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                  "
+                  >{{.note.Title | escapeHTML}}</span
+                >
                 {{end}}
               </h3>
             </div>
+            {{if .share.Editable}}
             <button class="btn btn-outline-light me-2" onclick="saveSharedNote()">保存</button>
             {{end}}
             <button class="btn btn-outline-light me-2" onclick="copyCurrentUrl()">リンクをコピー</button>
