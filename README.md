@@ -56,7 +56,7 @@
 
 ## 技術レポート
 
-[tech-report.md](tech-report.md)
+[TECH_REPORT.md](TECH_REPORT.md)
 
 実装規模の概算
 
