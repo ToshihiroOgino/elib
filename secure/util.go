@@ -3,7 +3,6 @@ package secure
 import (
 	"html"
 	"html/template"
-	"regexp"
 	"strings"
 )
 
@@ -11,34 +10,6 @@ func escapeHTML(input string) template.HTML {
 	// First escape basic HTML characters
 	escaped := html.EscapeString(input)
 	return template.HTML(escaped)
-}
-
-func sanitizeHTML(input string) string {
-	scriptRegex := regexp.MustCompile(`(?i)<script[^>]*>.*?</script>`)
-	input = scriptRegex.ReplaceAllString(input, "")
-
-	dangerousTags := []string{
-		`(?i)<iframe[^>]*>.*?</iframe>`,
-		`(?i)<object[^>]*>.*?</object>`,
-		`(?i)<embed[^>]*>.*?</embed>`,
-		`(?i)<applet[^>]*>.*?</applet>`,
-		`(?i)<meta[^>]*>`,
-		`(?i)<link[^>]*>`,
-		`(?i)<style[^>]*>.*?</style>`,
-	}
-
-	for _, pattern := range dangerousTags {
-		regex := regexp.MustCompile(pattern)
-		input = regex.ReplaceAllString(input, "")
-	}
-
-	jsProtocolRegex := regexp.MustCompile(`(?i)(href|src)\s*=\s*["']?\s*(javascript|data|vbscript):`)
-	input = jsProtocolRegex.ReplaceAllString(input, `$1="#"`)
-
-	eventRegex := regexp.MustCompile(`(?i)\s*on\w+\s*=\s*["'][^"']*["']`)
-	input = eventRegex.ReplaceAllString(input, "")
-
-	return input
 }
 
 func safeJSONString(input string) string {

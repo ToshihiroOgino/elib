@@ -153,7 +153,6 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 		return
 	}
 
-	// Validate and sanitize input
 	title, titleValid := secure.ValidateTextInput(req.Title, 500) // Max 500 characters for title
 	if !titleValid {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid title"})
@@ -166,7 +165,6 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 		return
 	}
 
-	// メモを取得して権限チェック
 	note, err := n.noteUsecase.Find(req.ID)
 	if err != nil {
 		slog.Error("failed to get note for saving", "noteId", req.ID, "error", err)
@@ -179,7 +177,6 @@ func (n *noteController) postSaveNote(c *gin.Context) {
 		return
 	}
 
-	// メモを更新（サニタイズされた値を使用）
 	note.Title = title
 	note.Content = content
 
@@ -197,7 +194,6 @@ func (n *noteController) deleteNote(c *gin.Context) {
 	user := secure.GetSessionUser(c)
 	noteId := c.Param("id")
 
-	// メモを取得して権限チェック
 	note, err := n.noteUsecase.Find(noteId)
 	if err != nil {
 		slog.Error("failed to get note for deletion", "noteId", noteId, "error", err)
@@ -210,7 +206,6 @@ func (n *noteController) deleteNote(c *gin.Context) {
 		return
 	}
 
-	// メモを削除
 	err = n.noteUsecase.Delete(note)
 	if err != nil {
 		slog.Error("failed to delete note", "noteId", noteId, "error", err)

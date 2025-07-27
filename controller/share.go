@@ -67,15 +67,6 @@ func (i *shareController) getSharedNote(c *gin.Context) {
 		return
 	}
 
-	user := secure.GetSessionUser(c)
-	if user == nil {
-		user = i.userUsecase.CreateGuestUser()
-	}
-
-	// 自身のメモであれば編集ページにリダイレクトする
-	if note.AuthorID == user.ID {
-		c.Redirect(http.StatusSeeOther, "/note/"+note.ID)
-	}
 	c.HTML(http.StatusOK, "shared_note.html", gin.H{
 		"title": "Shared Note",
 		"note":  note,

@@ -10,9 +10,6 @@ func createSecureTemplateEngine(pattern string) *template.Template {
 		"escapeHTML": func(text string) template.HTML {
 			return escapeHTML(text)
 		},
-		"sanitizeHTML": func(text string) string {
-			return sanitizeHTML(text)
-		},
 		"safeJSON": func(text string) string {
 			return safeJSONString(text)
 		},
