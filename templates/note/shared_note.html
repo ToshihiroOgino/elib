@@ -1,5 +1,24 @@
 {{template "header" .}}
 
+<style>
+  /* フッター用のアニメーション */
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+  
+  /* フッター情報のスタイル改善 */
+  .footer-info {
+    transition: color 0.3s ease;
+  }
+  
+  /* 保存状態の視覚的改善 */
+  .save-status-container {
+    font-weight: 500;
+  }
+</style>
+
 <body>
   <div class="container-fluid p-0">
     <!-- ヘッダー -->
@@ -72,7 +91,7 @@
             {{end}}
           >
             {{if .share.Editable}}
-            <!-- 編集可能バージョン -->
+            <!-- 編集可能 -->
             <form id="shared-note-form">
               <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
               <textarea
@@ -94,7 +113,7 @@
               >
             </form>
             {{else}}
-            <!-- 読み取り専用バージョン -->
+            <!-- 読み取り専用 -->
             <textarea
               class="shared-note-content"
               rows="30"
@@ -117,17 +136,7 @@
     </div>
 
     {{if .share.Editable}}
-    <!-- フッター（編集可能時のみ表示） -->
-    <div class="bg-secondary text-white p-2 fixed-bottom">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-3">カーソル位置: <span id="cursor-position">1:1</span></div>
-          <div class="col-md-3">文字数: <span id="char-count">0</span></div>
-          <div class="col-md-3">行数: <span id="total-lines">1</span></div>
-          <div class="col-md-3">保存状態: <span id="save-status">保存済み</span></div>
-        </div>
-      </div>
-    </div>
+    {{template "editor_footer"}}
     {{end}}
   </div>
 
@@ -154,6 +163,7 @@
   ></div>
 
   {{if .share.Editable}}
+  <script src="/static/js/common-editor.js"></script>
   <script src="/static/js/shared-editor.js"></script>
   {{else}}
   <script src="/static/js/shared-viewer.js"></script>

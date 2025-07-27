@@ -1,50 +1,14 @@
 let currentNoteId = "";
 let isModified = false;
 
-// 保存状態を動的に更新
-function updateSaveStatus(status) {
-  const saveStatusElement = document.getElementById("save-status");
-  const saveStatusContainer = saveStatusElement.parentElement;
+// updateSaveStatus, updateStats, updateCursorPosition関数はcommon-editor.jsに移動
 
-  switch (status) {
-    case "saved":
-      saveStatusElement.textContent = "保存済み";
-      break;
-    case "unsaved":
-      saveStatusElement.textContent = "未保存";
-      break;
-    case "saving":
-      saveStatusElement.textContent = "保存中...";
-      // 保存中のアニメーション効果
-      saveStatusElement.style.animation = "pulse 1s infinite";
-      break;
-    case "error":
-      saveStatusElement.textContent = "保存エラー";
-      break;
-    default:
-      saveStatusElement.textContent = "保存済み";
-  }
+// editTitle関数はcommon-editor.jsに移動
 
-  // アニメーションをリセット（保存中以外）
-  if (status !== "saving") {
-    saveStatusElement.style.animation = "";
-  }
-}
-
-function updateStats() {
-  const textarea = document.getElementById("note-content");
-  const content = textarea.value;
-
-  // 文字数を更新（選択範囲考慮）
-  updateSelectionInfo();
-
-  // 行数を更新
-  const lines = content.split("\n").length;
-  document.getElementById("total-lines").innerHTML = lines;
-
-  // カーソル位置を更新
-  updateCursorPosition();
-
+// editor.js専用のupdateStats関数（isModifiedロジック含む）
+function updateStatsWithModified() {
+  updateStats();
+  
   // 保存状態を更新
   if (!isModified) {
     isModified = true;
@@ -52,27 +16,10 @@ function updateStats() {
   }
 }
 
-// カーソル位置を更新
-function updateCursorPosition() {
-  const textarea = document.getElementById("note-content");
-  const content = textarea.value;
-  const cursorPos = textarea.selectionStart;
-  const beforeCursor = content.substring(0, cursorPos);
-  const lineNum = beforeCursor.split("\n").length;
-  const colNum = beforeCursor.split("\n").pop().length + 1;
-  document.getElementById("cursor-position").innerHTML = lineNum + ":" + colNum;
-}
-
-function editTitle() {
-  document.getElementById("note-title").classList.add("d-none");
-  document.getElementById("title-input").classList.remove("d-none");
-  document.getElementById("title-input").focus();
-}
-
 function saveTitle() {
   const input = document.getElementById("title-input");
   const span = document.getElementById("note-title");
-  span.innerHTML = input.value;
+  span.textContent = input.value;
   span.classList.remove("d-none");
   input.classList.add("d-none");
   saveNote();
@@ -158,7 +105,7 @@ function shareNote(editable) {
   const shareType = editable ? "編集可" : "閲覧のみ";
 
   if (!noteId) {
-    showToast("共有するメモが選択されていません");
+    showToast("共有するメモが選択されていません", "error");
     return;
   }
 
@@ -191,22 +138,22 @@ function shareNote(editable) {
           navigator.clipboard
             .writeText(shareUrl)
             .then(() => {
-              showToast(`共有リンク（${shareType}）を作成し、クリップボードにコピーしました`);
+              showToast(`共有リンク（${shareType}）を作成し、クリップボードにコピーしました`, "success");
             })
             .catch((err) => {
               console.error("Failed to copy: ", err);
-              showToast(`共有リンク（${shareType}）を作成しました: ${shareUrl}`);
+              showToast(`共有リンク（${shareType}）を作成しました: ${shareUrl}`, "info");
             });
         } else {
-          showToast(`共有リンク（${shareType}）を作成しました: ${shareUrl}`);
+          showToast(`共有リンク（${shareType}）を作成しました: ${shareUrl}`, "info");
         }
       } else {
-        showToast("共有リンクの作成に失敗しました");
+        showToast("共有リンクの作成に失敗しました", "error");
       }
     })
     .catch((error) => {
       console.error("Error:", error);
-      showToast(`共有リンクの作成に失敗しました: ${error.message}`);
+      showToast(`共有リンクの作成に失敗しました: ${error.message}`, "error");
     });
 }
 
@@ -219,39 +166,17 @@ function initializeEditor(noteId) {
   // テキストエリアの参照を取得
   const textarea = document.getElementById("note-content");
 
-  // 様々なイベントでカーソル位置と統計情報を更新
-  textarea.addEventListener("click", updateCursorPosition);
-  textarea.addEventListener("keyup", updateCursorPosition);
-  textarea.addEventListener("keydown", updateCursorPosition);
-  textarea.addEventListener("mouseup", updateCursorPosition);
-  textarea.addEventListener("focus", updateCursorPosition);
-  textarea.addEventListener("select", updateCursorPosition);
-
-  // 選択範囲変更時の更新
-  textarea.addEventListener("selectionchange", updateSelectionInfo);
-  textarea.addEventListener("mouseup", updateSelectionInfo);
-  textarea.addEventListener("keyup", updateSelectionInfo);
-
-  textarea.addEventListener("input", updateStats);
-  textarea.addEventListener("change", updateStats);
-  textarea.addEventListener("paste", () => {
-    // paste後に統計情報を更新するため少し遅延
-    setTimeout(updateStats, 10);
-  });
-
-  // 自動保存（5秒ごと）
-  setInterval(() => {
-    if (isModified) {
-      saveNote();
-    }
-  }, 5000);
-
-  // キーボードショートカット（Ctrl+S で保存）
-  textarea.addEventListener("keydown", (event) => {
-    if (event.ctrlKey && event.key === "s") {
-      event.preventDefault();
-      saveNote();
-    }
+  // 共通のエディターイベントを初期化
+  initializeCommonEditorEvents(textarea, {
+    enableAutoSave: true,
+    autoSaveInterval: 5000,
+    enableKeyboardShortcuts: true,
+    saveCallback: () => {
+      if (isModified) {
+        saveNote();
+      }
+    },
+    markUnsavedCallback: updateStatsWithModified
   });
 }
 
@@ -273,36 +198,7 @@ function initializeShareNumbers() {
 // 共有リンクをコピー
 function copyShareLink(shareId) {
   const shareUrl = window.location.origin + "/share/" + shareId;
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard
-      .writeText(shareUrl)
-      .then(() => {
-        showToast("共有リンクをコピーしました");
-      })
-      .catch((err) => {
-        console.error("Failed to copy: ", err);
-        fallbackCopyToClipboard(shareUrl);
-      });
-  } else {
-    fallbackCopyToClipboard(shareUrl);
-  }
-}
-
-// フォールバック用のコピー関数
-function fallbackCopyToClipboard(text) {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  document.body.appendChild(textArea);
-  textArea.select();
-  try {
-    window.clipboard.writeText(textArea.value);
-    showToast("共有リンクをコピーしました");
-  } catch (err) {
-    console.error("Failed to copy: ", err);
-    showToast("コピーに失敗しました");
-  }
-  document.body.removeChild(textArea);
+  copyToClipboard(shareUrl, "共有リンクをコピーしました", "コピーに失敗しました");
 }
 
 // 共有を削除
@@ -320,36 +216,21 @@ function deleteShare(shareId) {
       })
       .then((data) => {
         if (data.message) {
-          showToast("共有リンクを削除しました");
+          showToast("共有リンクを削除しました", "success");
           // リストから動的に削除
           removeShareFromList(shareId);
         } else {
-          showToast("削除に失敗しました");
+          showToast("削除に失敗しました", "error");
         }
       })
       .catch((error) => {
         console.error("Error:", error);
-        showToast(`削除に失敗しました: ${error.message}`);
+        showToast(`削除に失敗しました: ${error.message}`, "error");
       });
   }
 }
 
-// トースト通知を表示
-function showToast(message) {
-  // 簡単なトースト表示（Bootstrap使用時はBootstrapのToast使用可能）
-  const toast = document.createElement("div");
-  toast.className = "alert alert-info position-fixed";
-  toast.style.cssText = "top: 20px; right: 20px; z-index: 9999; max-width: 300px;";
-  toast.innerHTML = message;
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    if (toast.parentNode) {
-      toast.parentNode.removeChild(toast);
-    }
-  }, 3000);
-}
+// showToast関数はcommon-editor.jsに移動
 
 // 共有リストに新しいアイテムを追加
 function addShareToList(shareId, editable) {
@@ -467,23 +348,4 @@ function getDetailedStats() {
   return stats;
 }
 
-// 選択範囲の情報を更新
-function updateSelectionInfo() {
-  const textarea = document.getElementById("note-content");
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-
-  if (start !== end) {
-    const selectedText = textarea.value.substring(start, end);
-    const selectedLength = selectedText.length;
-    const selectedWords = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
-
-    // 選択情報を表示（例：フッターの文字数部分に追加表示）
-    const charCountElement = document.getElementById("char-count");
-    charCountElement.textContent = `${textarea.value.length} (選択: ${selectedLength})`;
-  } else {
-    // 選択なしの場合は通常表示
-    const charCountElement = document.getElementById("char-count");
-    charCountElement.textContent = textarea.value.length;
-  }
-}
+// updateSelectionInfo関数はcommon-editor.jsに移動

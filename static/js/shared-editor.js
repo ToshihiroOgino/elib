@@ -4,6 +4,8 @@ let isUnsaved = false;
 let lastSavedContent = "";
 let sharedNoteConfig = {};
 
+// updateSaveStatus関数はcommon-editor.jsに移動
+
 document.addEventListener("DOMContentLoaded", function () {
   const dataElement = document.getElementById("shared-note-data");
   sharedNoteConfig = {
@@ -17,27 +19,21 @@ document.addEventListener("DOMContentLoaded", function () {
   if (noteContent) {
     lastSavedContent = noteContent.value;
     updateStats();
+    // 初期状態は保存済み
+    updateSaveStatus("saved");
 
-    // テキストエリアのイベントリスナー
-    noteContent.addEventListener("input", function () {
-      updateStats();
-      markUnsaved();
+    // 共通のエディターイベントを初期化
+    initializeCommonEditorEvents(noteContent, {
+      enableAutoSave: true,
+      autoSaveInterval: 5000,
+      enableKeyboardShortcuts: true,
+      saveCallback: () => {
+        if (isUnsaved) {
+          saveSharedNote();
+        }
+      },
+      markUnsavedCallback: markUnsaved
     });
-
-    noteContent.addEventListener("keydown", function (e) {
-      updateCursorPosition();
-    });
-
-    noteContent.addEventListener("click", function (e) {
-      updateCursorPosition();
-    });
-
-    // 自動保存（5秒間隔）
-    setInterval(function () {
-      if (isUnsaved) {
-        saveSharedNote();
-      }
-    }, 5000);
 
     // ページ離脱時の警告
     window.addEventListener("beforeunload", function (e) {
@@ -53,35 +49,13 @@ document.addEventListener("DOMContentLoaded", function () {
   convertUtcToLocal();
 });
 
-function updateStats() {
-  const textarea = document.getElementById("note-content");
-  const content = textarea.value;
-
-  document.getElementById("char-count").textContent = content.length;
-
-  const lines = content.split("\n").length;
-  document.getElementById("line-count").textContent = lines;
-  document.getElementById("total-lines").textContent = lines;
-
-  updateCursorPosition();
-}
-
-function updateCursorPosition() {
-  const textarea = document.getElementById("note-content");
-  const content = textarea.value;
-  const cursorPos = textarea.selectionStart;
-  const beforeCursor = content.substring(0, cursorPos);
-  const lineNum = beforeCursor.split("\n").length;
-  const colNum = beforeCursor.split("\n").pop().length + 1;
-  document.getElementById("cursor-position").textContent = lineNum + ":" + colNum;
-}
+// updateStats, updateCursorPosition, updateSelectionInfo関数はcommon-editor.jsに移動
 
 function markUnsaved() {
   const content = document.getElementById("note-content").value;
   if (content !== lastSavedContent) {
     isUnsaved = true;
-    document.getElementById("save-status").textContent = "未保存";
-    document.getElementById("save-status").style.color = "#ffc107";
+    updateSaveStatus("unsaved");
   }
 }
 
@@ -90,10 +64,8 @@ function saveSharedNote() {
   const content = document.getElementById("note-content").value;
   const title = document.getElementById("note-title").textContent;
 
-  // 保存状態を表示
-  const saveStatus = document.getElementById("save-status");
-  saveStatus.textContent = "保存中...";
-  saveStatus.style.color = "#6c757d";
+  // 保存中状態を表示
+  updateSaveStatus("saving");
 
   fetch(`/share/${shareId}`, {
     method: "PUT",
@@ -114,27 +86,17 @@ function saveSharedNote() {
     .then((data) => {
       lastSavedContent = content;
       isUnsaved = false;
-      saveStatus.textContent = "保存済み";
-      saveStatus.style.color = "#28a745";
+      updateSaveStatus("saved");
       showToast("保存が完了しました", "success");
     })
     .catch((error) => {
       console.error("Error:", error);
-      saveStatus.textContent = "保存失敗";
-      saveStatus.style.color = "#dc3545";
+      updateSaveStatus("error");
       showToast("保存に失敗しました: " + error.message, "error");
     });
 }
 
-function editTitle() {
-  const titleSpan = document.getElementById("note-title");
-  const titleInput = document.getElementById("title-input");
-
-  titleSpan.classList.add("d-none");
-  titleInput.classList.remove("d-none");
-  titleInput.focus();
-  titleInput.select();
-}
+// editTitle関数はcommon-editor.jsに移動
 
 function saveTitle() {
   const titleSpan = document.getElementById("note-title");
@@ -151,34 +113,7 @@ function saveTitle() {
 }
 
 function copyCurrentUrl() {
-  navigator.clipboard
-    .writeText(window.location.href)
-    .then(() => {
-      showToast("リンクをクリップボードにコピーしました", "success");
-    })
-    .catch((err) => {
-      console.error("Failed to copy: ", err);
-      showToast("リンクのコピーに失敗しました", "error");
-    });
+  copyToClipboard(window.location.href, "リンクをクリップボードにコピーしました", "リンクのコピーに失敗しました");
 }
 
-function showToast(message, type = "info") {
-  const toast = document.getElementById("toast");
-  const toastMessage = document.getElementById("toast-message");
-  const toastHeader = toast.querySelector(".toast-header");
-
-  // タイプに応じて色を変更
-  toastHeader.className = "toast-header";
-  if (type === "success") {
-    toastHeader.classList.add("bg-success", "text-white");
-  } else if (type === "error") {
-    toastHeader.classList.add("bg-danger", "text-white");
-  } else {
-    toastHeader.classList.add("bg-info", "text-white");
-  }
-
-  toastMessage.textContent = message;
-
-  const bsToast = new bootstrap.Toast(toast);
-  bsToast.show();
-}
+// showToast関数はcommon-editor.jsに移動
