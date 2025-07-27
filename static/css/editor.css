@@ -1,0 +1,76 @@
+/* フッター用のアニメーション */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* フッター情報のスタイル改善 */
+.footer-info {
+  transition: color 0.3s ease;
+}
+
+/* 保存状態の視覚的改善 */
+.save-status-container {
+  font-weight: 500;
+}
+
+/* 画面全体のスクロールを防ぐ */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* コンテナのスタイル改善 */
+.main-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ナビゲーションバーの高さを固定 */
+.navbar {
+  flex-shrink: 0;
+}
+
+/* メインコンテンツエリアのスタイル改善 */
+.content-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* サイドバーのスタイル改善 */
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* エディターエリアのスタイル改善 */
+.editor-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* テキストエリアのスタイル改善 */
+.editor-textarea {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  border: none;
+  outline: none;
+  font-family: monospace;
+  line-height: 1.5;
+  padding: 20px;
+}

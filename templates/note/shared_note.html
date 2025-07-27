@@ -1,23 +1,6 @@
 {{template "header" .}}
 
-<style>
-  /* フッター用のアニメーション */
-  @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
-  }
-  
-  /* フッター情報のスタイル改善 */
-  .footer-info {
-    transition: color 0.3s ease;
-  }
-  
-  /* 保存状態の視覚的改善 */
-  .save-status-container {
-    font-weight: 500;
-  }
-</style>
+<link rel="stylesheet" href="/static/css/shared-note.css">
 
 <body>
   <div class="container-fluid p-0">
@@ -135,9 +118,7 @@
       </div>
     </div>
 
-    {{if .share.Editable}}
-    {{template "editor_footer"}}
-    {{end}}
+    {{if .share.Editable}} {{template "editor_footer"}} {{end}}
   </div>
 
   <!-- 通知用トースト -->

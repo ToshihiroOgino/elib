@@ -1,32 +1,9 @@
 {{template "header" .}}
 
-<style>
-  /* フッター用のアニメーション */
-  @keyframes pulse {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.6;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-
-  /* フッター情報のスタイル改善 */
-  .footer-info {
-    transition: color 0.3s ease;
-  }
-
-  /* 保存状態の視覚的改善 */
-  .save-status-container {
-    font-weight: 500;
-  }
-</style>
+<link rel="stylesheet" href="/static/css/editor.css">
 
 <body>
-  <div class="container-fluid p-0">
+  <div class="main-container">
     <!-- ヘッダー -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
       <div class="container-fluid">
@@ -79,9 +56,9 @@
       </div>
     </nav>
 
-    <div class="row g-0">
+    <div class="content-area">
       <!-- サイドバー -->
-      <div class="col-md-3 bg-light border-end d-flex flex-column" style="height: calc(100vh - 56px)">
+      <div class="sidebar bg-light border-end d-flex flex-column">
         <!-- メモ一覧セクション -->
         <div class="p-3 flex-grow-1 d-flex flex-column" style="min-height: 0">
           <h6 class="mb-3">メモ一覧</h6>
@@ -146,22 +123,18 @@
       </div>
 
       <!-- メインコンテンツ -->
-      <div class="col-md-9">
-        <div class="p-3" style="height: calc(100vh - 56px - 40px); overflow-y: auto">
-          <form id="note-form">
-            <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
-            <textarea
-              id="note-content"
-              class="form-control"
-              rows="30"
-              style="resize: none; border: none; outline: none; font-family: monospace; line-height: 1.5"
-              placeholder="ここにメモを入力してください..."
-              oninput="updateStats()"
-            >
+      <div class="editor-area">
+        <form id="note-form" class="h-100 d-flex flex-column">
+          <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
+          <textarea
+            id="note-content"
+            class="editor-textarea"
+            placeholder="ここにメモを入力してください..."
+            oninput="updateStats()"
+          >
 {{.note.Content | escapeHTML}}</textarea
-            >
-          </form>
-        </div>
+          >
+        </form>
       </div>
     </div>
 
