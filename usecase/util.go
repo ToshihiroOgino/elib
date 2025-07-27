@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -13,4 +14,9 @@ func newUUID() string {
 		panic(err)
 	}
 	return id.String()
+}
+
+func now() *time.Time {
+	currentTime := time.Now()
+	return &currentTime
 }

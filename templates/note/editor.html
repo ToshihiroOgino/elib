@@ -37,7 +37,7 @@
                         <div class="card mb-2 note-item" data-note-id="{{.ID}}" onclick="selectNote('{{.ID}}')">
                             <div class="card-body p-2">
                                 <h6 class="card-title mb-1" style="font-size: 0.9rem;">{{.Title}}</h6>
-                                <small class="text-muted">{{.UpdatedAt.Format "2006/01/02 15:04"}}</small>
+                                <small class="text-muted" data-utc-time="{{.UpdatedAt.Format "2006-01-02T15:04:05"}}">{{.UpdatedAt.Format "2006/01/02 15:04"}}</small>
                             </div>
                         </div>
                         {{end}}

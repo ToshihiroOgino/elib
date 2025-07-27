@@ -3,6 +3,7 @@ package usecase
 import (
 	"fmt"
 	"log/slog"
+	"sort"
 	"time"
 
 	"github.com/ToshihiroOgino/elib/generated/generated/domain"
@@ -80,6 +81,9 @@ func (n *noteUsecase) FindNotesByUserID(userID string) ([]*domain.Note, error) {
 	if err != nil {
 		return nil, err
 	}
+	sort.Slice(notes, func(i, j int) bool {
+		return notes[i].UpdatedAt.After(*notes[j].UpdatedAt)
+	})
 	return notes, nil
 }
 

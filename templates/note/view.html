@@ -6,7 +6,13 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
             <div class="container-fluid">
                 <h5 class="mb-0 text-white">{{.note.Title}} (閲覧専用)</h5>
-                <small class="text-light">作成日: {{.note.CreatedAt.Format "2006/01/02 15:04"}}</small>
+                <div class="text-light">
+                    <small data-utc-time="{{.note.CreatedAt.Format "2006-01-02T15:04:05"}}">作成日: {{.note.CreatedAt.Format "2006/01/02 15:04"}}</small>
+                    {{if .note.UpdatedAt}}
+                    <br>
+                    <small data-utc-time="{{.note.UpdatedAt.Format "2006-01-02T15:04:05"}}">更新日: {{.note.UpdatedAt.Format "2006/01/02 15:04"}}</small>
+                    {{end}}
+                </div>
             </div>
         </nav>
 

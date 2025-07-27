@@ -6,27 +6,22 @@ function updateStats() {
     const textarea = document.getElementById('note-content');
     const content = textarea.value;
 
-    // 文字数
     document.getElementById('char-count').textContent = content.length;
 
-    // 行数
     const lines = content.split('\n').length;
     document.getElementById('line-count').textContent = lines;
     document.getElementById('total-lines').textContent = lines;
 
-    // カーソル位置
     const cursorPos = textarea.selectionStart;
     const beforeCursor = content.substring(0, cursorPos);
     const lineNum = beforeCursor.split('\n').length;
     const colNum = beforeCursor.split('\n').pop().length + 1;
     document.getElementById('cursor-position').textContent = lineNum + ':' + colNum;
 
-    // 保存状態
     isModified = true;
     document.getElementById('save-status').textContent = '未保存';
 }
 
-// タイトル編集
 function editTitle() {
     document.getElementById('note-title').classList.add('d-none');
     document.getElementById('title-input').classList.remove('d-none');
@@ -42,7 +37,6 @@ function saveTitle() {
     saveNote();
 }
 
-// メモ保存
 function saveNote() {
     const noteId = document.getElementById('note-id').value;
     const title = document.getElementById('title-input').value;
@@ -72,12 +66,10 @@ function saveNote() {
         });
 }
 
-// 新規メモ作成
 function createNewNote() {
     window.location.href = '/note/new';
 }
 
-// メモ削除
 function deleteNote() {
     if (confirm('このメモを削除しますか？')) {
         const noteId = document.getElementById('note-id').value;
@@ -97,7 +89,6 @@ function deleteNote() {
     }
 }
 
-// 共有機能（簡易実装）
 function shareNote() {
     const noteId = document.getElementById('note-id').value;
     const shareUrl = window.location.origin + '/note/view/' + noteId;
@@ -108,7 +99,6 @@ function shareNote() {
     });
 }
 
-// メモ選択
 function selectNote(noteId) {
     // if (isModified && !confirm('未保存の変更があります。移動しますか？')) {
     //     return;
@@ -116,7 +106,6 @@ function selectNote(noteId) {
     window.location.href = '/note/' + noteId;
 }
 
-// 初期化
 function initializeEditor(noteId) {
     currentNoteId = noteId;
     updateStats();
@@ -134,7 +123,6 @@ function initializeEditor(noteId) {
     }, 5000);
 }
 
-// DOM読み込み完了時の処理
 document.addEventListener('DOMContentLoaded', function () {
     // noteIdは外部から設定される想定
     if (typeof window.noteId !== 'undefined') {
