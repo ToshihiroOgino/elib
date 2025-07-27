@@ -33,7 +33,16 @@ func CSRFMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Method == "GET" || c.Request.Method == "HEAD" || c.Request.Method == "OPTIONS" {
 			token := generateCSRFToken()
-			SetCSRFToken(c, token) // This now also sets the secure cookie
+			setCSRFToken(c, token)
+			c.Next()
+			return
+		}
+
+		if isAuthenticationEndpoint(c.Request.URL.Path) {
+			if c.Request.URL.Path == "/user/login" && c.Request.Method == "POST" {
+				token := generateCSRFToken()
+				setCSRFToken(c, token)
+			}
 			c.Next()
 			return
 		}
@@ -63,13 +72,28 @@ func CSRFMiddleware() gin.HandlerFunc {
 		}
 
 		if !validateCSRFToken(expectedToken, clientToken) {
-			c.JSON(403, gin.H{"error": "CSRF token validation failed"})
+			c.JSON(403, gin.H{"error": "CSRF token validation failed", "expected": expectedToken, "received": clientToken})
 			c.Abort()
 			return
 		}
 
 		c.Next()
 	}
+}
+
+func isAuthenticationEndpoint(path string) bool {
+	authEndpoints := []string{
+		"/user/login",
+		"/user/register",
+		"/user/logout",
+	}
+
+	for _, endpoint := range authEndpoints {
+		if path == endpoint {
+			return true
+		}
+	}
+	return false
 }
 
 func generateCSRFToken() string {
@@ -88,10 +112,9 @@ func GetCSRFToken(c *gin.Context) string {
 	return token.(string)
 }
 
-func SetCSRFToken(c *gin.Context, token string) {
+func setCSRFToken(c *gin.Context, token string) {
 	c.Set(CSRFTokenKey, token)
 	c.Header("X-CSRF-Token", token)
-	// Also save to secure cookie for persistence across requests
 	SetCSRFCookieSecure(c, token)
 }
 
