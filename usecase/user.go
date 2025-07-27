@@ -16,6 +16,7 @@ type IUserUsecase interface {
 	Create(email string, password string) (*domain.User, error)
 	Validate(user *domain.User, email string, password string) (bool, error)
 	FindByEmail(email string) (*domain.User, error)
+	CreateGuestUser() *domain.User
 }
 
 type userUsecase struct {
@@ -114,4 +115,14 @@ func (u *userUsecase) FindByEmail(email string) (*domain.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (u *userUsecase) CreateGuestUser() *domain.User {
+	id := "guest"
+	email := "guest@example.com"
+	return &domain.User{
+		ID:           id,
+		Email:        email,
+		PasswordHash: []byte{},
+	}
 }

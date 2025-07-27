@@ -108,12 +108,6 @@ function shareNote() {
     });
 }
 
-// ログアウト
-function logout() {
-    document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.href = '/user/login';
-}
-
 // メモ選択
 function selectNote(noteId) {
     // if (isModified && !confirm('未保存の変更があります。移動しますか？')) {

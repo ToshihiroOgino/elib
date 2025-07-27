@@ -12,7 +12,7 @@ import (
 )
 
 type INoteUsecase interface {
-	NewNote(user *domain.User) *domain.Note
+	CreateNote(user *domain.User) (*domain.Note, error)
 	UpdateNote(note *domain.Note) (*domain.Note, error)
 	Find(noteId string) (*domain.Note, error)
 	FindNotesByUserID(userID string) ([]*domain.Note, error)
@@ -42,14 +42,19 @@ func defaultTitle() string {
 	return title
 }
 
-func (n *noteUsecase) NewNote(user *domain.User) *domain.Note {
+func (n *noteUsecase) CreateNote(user *domain.User) (*domain.Note, error) {
 	note := &domain.Note{
 		ID:       newUUID(),
 		Title:    defaultTitle(),
 		Content:  "",
 		AuthorID: user.ID,
 	}
-	return note
+	_, do := n.newQuery()
+	if err := do.Create(note); err != nil {
+		slog.Error("failed to create note", "error", err)
+		return nil, err
+	}
+	return note, nil
 }
 
 func (n *noteUsecase) UpdateNote(note *domain.Note) (*domain.Note, error) {

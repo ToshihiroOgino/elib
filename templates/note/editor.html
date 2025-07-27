@@ -10,7 +10,9 @@
                     <button class="btn btn-outline-light me-2" onclick="saveNote()">保存</button>
                     <button class="btn btn-outline-light me-2" onclick="deleteNote()">削除</button>
                     <button class="btn btn-outline-light me-2" onclick="shareNote()">共有</button>
-                    <button class="btn btn-outline-light me-2" onclick="logout()">ログアウト</button>
+                    <form action="/user/logout" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-outline-light me-2">ログアウト</button>
+                    </form>
                 </div>
                 <div class="flex-grow-1 text-center">
                     <h5 class="mb-0 text-white" onclick="editTitle()" style="cursor: pointer;">

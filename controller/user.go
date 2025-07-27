@@ -20,19 +20,17 @@ type loginForm struct {
 }
 
 type IUserController interface {
+	getLogin(c *gin.Context)
+	getRegister(c *gin.Context)
 	getProfile(c *gin.Context)
 	postRegister(c *gin.Context)
 	postLogin(c *gin.Context)
+	postLogout(c *gin.Context)
 }
 
 type userController struct {
 	usecase usecase.IUserUsecase
 }
-
-const _URL_USER_ROOT = "/user"
-const _URL_PROFILE = ""
-const _URL_LOGIN = "/login"
-const _URL_REGISTER = "/register"
 
 func NewUserController(router *gin.Engine) IUserController {
 	instance := &userController{
@@ -43,31 +41,42 @@ func NewUserController(router *gin.Engine) IUserController {
 }
 
 func setupUserRoute(api IUserController, router *gin.Engine) {
-	userGroup := router.Group(_URL_USER_ROOT)
-	userGroup.GET(_URL_LOGIN, func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.html", gin.H{
-			"title":        "Login",
-			"register_url": _URL_REGISTER,
-		})
-	})
-	userGroup.GET(_URL_REGISTER, func(c *gin.Context) {
-		c.HTML(http.StatusOK, "register.html", gin.H{
-			"title":     "Register",
-			"login_url": _URL_LOGIN,
-		})
-	})
+	userGroup := router.Group("/user")
+	userGroup.GET("/login", api.getLogin)
+	userGroup.GET("/register", api.getRegister)
 
-	userGroup.POST(_URL_LOGIN, api.postLogin)
-	userGroup.POST(_URL_REGISTER, api.postRegister)
+	userGroup.POST("/login", api.postLogin)
+	userGroup.POST("/register", api.postRegister)
+	userGroup.POST("/logout", api.postLogout)
 
 	userGroup.Use(auth.AuthMiddleware())
 	{
-		userGroup.GET(_URL_PROFILE, api.getProfile)
+		userGroup.GET("/profile", api.getProfile)
 	}
 }
 
+func (u *userController) getLogin(c *gin.Context) {
+	redirectIfLoggedIn(c)
+	c.HTML(http.StatusOK, "login.html", gin.H{
+		"title":        "Login",
+		"register_url": "/user/register",
+	})
+}
+
+func (u *userController) getRegister(c *gin.Context) {
+	redirectIfLoggedIn(c)
+	c.HTML(http.StatusOK, "register.html", gin.H{
+		"title":     "Register",
+		"login_url": "/user/login",
+	})
+}
+
 func (u *userController) getProfile(c *gin.Context) {
-	user := auth.GetUser(c)
+	user := auth.GetSessionUser(c)
+
+	if user == nil {
+		user = u.usecase.CreateGuestUser()
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"id":    user.ID,
@@ -122,4 +131,19 @@ func (u *userController) postLogin(c *gin.Context) {
 
 	auth.SetAuthCookie(c, user.ID)
 	c.Redirect(http.StatusSeeOther, "/note")
+}
+
+func redirectIfLoggedIn(c *gin.Context) {
+	user, err := auth.GetLoggedInUser(c)
+	if err == nil && user != nil {
+		slog.Info("user already logged in", "user_id", user.ID, "email", user.Email)
+		c.Redirect(http.StatusSeeOther, "/note")
+		return
+	}
+}
+
+func (u *userController) postLogout(c *gin.Context) {
+	auth.ClearAuthCookie(c)
+	slog.Info("user logged out")
+	c.Redirect(http.StatusSeeOther, "/user/login")
 }

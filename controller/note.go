@@ -13,10 +13,9 @@ import (
 type INoteController interface {
 	getNote(c *gin.Context)
 	getNoteById(c *gin.Context)
-	createNewNote(c *gin.Context)
-	saveNote(c *gin.Context)
+	getCreateNewNote(c *gin.Context)
+	postSaveNote(c *gin.Context)
 	deleteNote(c *gin.Context)
-	viewNote(c *gin.Context)
 }
 
 type noteController struct {
@@ -29,8 +28,6 @@ type saveNoteRequest struct {
 	Content string `json:"content"`
 }
 
-const _URL_NOTE_ROOT = "/note"
-
 func NewNoteController(router *gin.Engine) INoteController {
 	instance := &noteController{
 		usecase: usecase.NewNoteUsecase(),
@@ -40,22 +37,19 @@ func NewNoteController(router *gin.Engine) INoteController {
 }
 
 func setupNoteRoute(api INoteController, router *gin.Engine) {
-	noteGroup := router.Group(_URL_NOTE_ROOT)
+	noteGroup := router.Group("/note")
 	noteGroup.Use(auth.AuthMiddleware())
 	{
 		noteGroup.GET("", api.getNote)
-		noteGroup.GET("/new", api.createNewNote)
 		noteGroup.GET("/:id", api.getNoteById)
-		noteGroup.POST("/save", api.saveNote)
+		noteGroup.GET("/new", api.getCreateNewNote)
+		noteGroup.POST("/save", api.postSaveNote)
 		noteGroup.DELETE("/delete/:id", api.deleteNote)
 	}
-
-	// 共有用の認証なしルート
-	router.GET(_URL_NOTE_ROOT+"/view/:id", api.viewNote)
 }
 
 func (n *noteController) getNote(c *gin.Context) {
-	user := auth.GetUser(c)
+	user := auth.GetSessionUser(c)
 
 	// ユーザーの全メモを取得
 	notes, err := n.usecase.FindNotesByUserID(user.ID)
@@ -69,13 +63,11 @@ func (n *noteController) getNote(c *gin.Context) {
 	if len(notes) > 0 {
 		currentNote = notes[0]
 	} else {
-		currentNote = n.usecase.NewNote(user)
-		// 新規メモを保存
-		savedNote, err := n.usecase.UpdateNote(currentNote)
+		newNote, err := n.usecase.CreateNote(user)
 		if err != nil {
 			slog.Error("failed to save new note", "error", err)
 		} else {
-			currentNote = savedNote
+			currentNote = newNote
 			notes = []*domain.Note{currentNote}
 		}
 	}
@@ -88,20 +80,18 @@ func (n *noteController) getNote(c *gin.Context) {
 }
 
 func (n *noteController) getNoteById(c *gin.Context) {
-	user := auth.GetUser(c)
+	user := auth.GetSessionUser(c)
 	noteId := c.Param("id")
 
-	// 指定されたメモを取得
 	note, err := n.usecase.Find(noteId)
 	if err != nil {
 		slog.Error("failed to get note", "noteId", noteId, "error", err)
-		c.Redirect(http.StatusSeeOther, _URL_NOTE_ROOT)
+		c.Redirect(http.StatusSeeOther, "/note")
 		return
 	}
 
-	// 権限チェック
 	if note.AuthorID != user.ID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		c.Redirect(http.StatusSeeOther, "/note")
 		return
 	}
 
@@ -119,23 +109,22 @@ func (n *noteController) getNoteById(c *gin.Context) {
 	})
 }
 
-func (n *noteController) createNewNote(c *gin.Context) {
-	user := auth.GetUser(c)
+func (n *noteController) getCreateNewNote(c *gin.Context) {
+	user := auth.GetSessionUser(c)
 
 	// 新規メモを作成
-	newNote := n.usecase.NewNote(user)
-	savedNote, err := n.usecase.UpdateNote(newNote)
+	newNote, err := n.usecase.CreateNote(user)
 	if err != nil {
 		slog.Error("failed to create new note", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create note"})
 		return
 	}
 
-	c.Redirect(http.StatusSeeOther, _URL_NOTE_ROOT+"/"+savedNote.ID)
+	c.Redirect(http.StatusSeeOther, "/note/"+newNote.ID)
 }
 
-func (n *noteController) saveNote(c *gin.Context) {
-	user := auth.GetUser(c)
+func (n *noteController) postSaveNote(c *gin.Context) {
+	user := auth.GetSessionUser(c)
 
 	var req saveNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -172,7 +161,7 @@ func (n *noteController) saveNote(c *gin.Context) {
 }
 
 func (n *noteController) deleteNote(c *gin.Context) {
-	user := auth.GetUser(c)
+	user := auth.GetSessionUser(c)
 	noteId := c.Param("id")
 
 	// メモを取得して権限チェック
@@ -197,23 +186,4 @@ func (n *noteController) deleteNote(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "success"})
-}
-
-func (n *noteController) viewNote(c *gin.Context) {
-	noteId := c.Param("id")
-
-	// メモを取得（共有表示用）
-	note, err := n.usecase.Find(noteId)
-	if err != nil {
-		slog.Error("failed to get note for viewing", "noteId", noteId, "error", err)
-		c.HTML(http.StatusNotFound, "404.html", gin.H{
-			"title": "メモが見つかりません",
-		})
-		return
-	}
-
-	c.HTML(http.StatusOK, "view.html", gin.H{
-		"title": note.Title,
-		"note":  note,
-	})
 }
