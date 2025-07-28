@@ -10,7 +10,8 @@
         <div class="d-flex align-items-center justify-content-between w-100">
           <div class="d-flex align-items-center">
             <span class="navbar-brand mb-0 h1">
-              {{if .share.Editable}} 共有メモ (編集可) {{else}} 共有メモ (閲覧のみ) {{end}}
+              {{if .share.Editable}} 共有メモ (編集可) {{else}} 共有メモ
+              (閲覧のみ) {{end}}
             </span>
             <div class="flex-grow-1 me-2">
               <h3 class="mb-0 text-white">
@@ -52,9 +53,19 @@
               </h3>
             </div>
             {{if .share.Editable}}
-            <button class="btn btn-outline-light me-2" onclick="saveSharedNote()">保存</button>
+            <button
+              class="btn btn-outline-light me-2"
+              onclick="saveSharedNote()"
+            >
+              保存
+            </button>
             {{end}}
-            <button class="btn btn-outline-light me-2" onclick="copyCurrentUrl()">リンクをコピー</button>
+            <button
+              class="btn btn-outline-light me-2"
+              onclick="copyCurrentUrl()"
+            >
+              リンクをコピー
+            </button>
           </div>
           <div>
             <a href="/note" class="btn btn-outline-light">メモ一覧へ</a>
@@ -63,7 +74,8 @@
         <div class="text-white">
           <small
             >最終更新:
-            <span data-utc-time='{{.note.UpdatedAt.Format "2006-01-02T15:04:05"}}'
+            <span
+              data-utc-time='{{.note.UpdatedAt.Format "2006-01-02T15:04:05"}}'
               >{{.note.UpdatedAt.Format "2006/01/02 15:04"}}</span
             ></small
           >
@@ -85,7 +97,11 @@
             {{if .share.Editable}}
             <!-- 編集可能 -->
             <form id="shared-note-form">
-              <input type="hidden" id="note-id" value="{{.note.ID | escapeHTML}}" />
+              <input
+                type="hidden"
+                id="note-id"
+                value="{{.note.ID | escapeHTML}}"
+              />
               <textarea
                 id="note-content"
                 class="form-control"
@@ -100,9 +116,7 @@
                 "
                 placeholder="ここにメモを入力してください..."
                 oninput="updateStats()"
-              >
-{{.note.Content | escapeHTML}}</textarea
-              >
+              >{{.note.Content | escapeHTML}}</textarea>
             </form>
             {{else}}
             <!-- 読み取り専用 -->
@@ -118,9 +132,7 @@
                 border-radius: 0.375rem;
                 width: 100%;
               "
-            >
-{{.note.Content | escapeHTML}}</textarea
-            >
+            >{{.note.Content | escapeHTML}}</textarea>
             {{end}}
           </div>
         </div>
@@ -135,7 +147,11 @@
     <div id="toast" class="toast" role="alert">
       <div class="toast-header">
         <strong class="me-auto">通知</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="toast"
+        ></button>
       </div>
       <div class="toast-body" id="toast-message">
         <!-- メッセージがここに表示されます -->
