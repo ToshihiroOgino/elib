@@ -1,0 +1,10 @@
+services:
+  elib:
+    container_name: elib
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - ./sqlite/db.sqlite3:/app/sqlite/db.sqlite3
+    env_file:
+      - .env
