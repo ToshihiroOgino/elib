@@ -40,8 +40,6 @@
 
 ### Migration
 
-`sqlite\migration` のSQLファイルをタイムスタンプ順に実行する。
-
 `get-Content .\sqlite\migration\xxx.sql | sqlite3.exe .\sqlite\db.sqlite3`
 
 ### Domain, Repositoryのコード生成
