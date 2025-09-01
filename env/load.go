@@ -64,7 +64,7 @@ func parseLine(line string) (string, string) {
 	return key, value
 }
 
-func load() {
+func loadFromFile() {
 	envPath := ".env"
 	file, err := os.Open(envPath)
 	if err != nil {
@@ -97,13 +97,29 @@ func load() {
 	slog.Debug("loaded environment variables", "EnvKeys", env.Keys())
 }
 
+func loadFromOS() {
+	once.Do(func() {
+		portStr := os.Getenv("PORT")
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			slog.Error("failed to parse PORT from environment variables", "error", err)
+		}
+		env = Env{
+			Port:      port,
+			DBFile:    os.Getenv("DB_FILE"),
+			JWTSecret: os.Getenv("JWT_SECRET"),
+		}
+	})
+}
+
 func loadOnce() {
 	once.Do(func() {
-		load()
+		loadFromFile()
 	})
 }
 
 func Get() Env {
-	loadOnce()
+	// loadOnce()
+	loadFromOS()
 	return env
 }
